@@ -1,0 +1,16 @@
+<?php 
+echo '<div class="exploratory-map" data-markers="' . $this->escapeHtml(json_encode($markers)) . '"></div>';
+
+echo '<div class="item-showcase">';
+    foreach ($markers as $marker_index => $marker):
+
+        echo '<div class="item resource">';
+
+            echo '<h3>' . $marker['title'] .'</h3>';
+            // if ($marker['caption']) {
+            //     echo '<div class="caption">' . $marker['caption'] . '</div>';
+            // }
+        echo '</div>';
+    endforeach;    
+echo '</div>';
+?>
