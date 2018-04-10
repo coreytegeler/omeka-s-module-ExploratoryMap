@@ -1,14 +1,28 @@
 .exploratory-map {
-	width: 100%;
-	height: 600px;
-	overflow: hidden;
-	
-}
-canvas.mapboxgl-canvas {
-	outline: none;
-}
-.mapboxgl-marker {
-	width: 10px;
-	height: 10px;
-	background: black;
-}
+  width: 100%;
+  height: 600px;
+  overflow: hidden;
+  position: relative; }
+  .exploratory-map canvas.mapboxgl-canvas {
+    outline: none; }
+  .exploratory-map.marker-hover {
+    cursor: pointer; }
+  .exploratory-map .em-popup {
+    width: calc(100% - 4em);
+    height: calc(100% - 4em);
+    position: absolute;
+    left: 2em;
+    top: 2em;
+    padding: 1em;
+    background: #f8f8f8;
+    display: none;
+    z-index: 100; }
+    .exploratory-map .em-popup h2 {
+      margin: 0;
+      text-align: center; }
+    .exploratory-map .em-popup ul li {
+      padding: 0 0 .5em 0; }
+    .exploratory-map .em-popup a {
+      border-bottom: 2px solid black; }
+    .exploratory-map .em-popup.show {
+      display: block; }

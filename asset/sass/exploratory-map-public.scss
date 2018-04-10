@@ -1,0 +1,124 @@
+$gray: #bdcde3;
+$dark: darken($gray, 50%);
+$medium: darken($gray, 20%);
+$light: lighten($gray, 20%);
+$bg: lighten($gray, 15%);
+.exploratory-map-block {
+	.exploratory-map {
+		width: 100%;
+		height: 600px;
+		overflow: hidden;
+		position: relative;
+		opacity: 0;
+		transition: opacity 300ms ease;
+		canvas.mapboxgl-canvas {
+			outline: none;
+		}
+		&.show {
+			opacity: 1;
+		}
+		&.marker-hover {
+			cursor: pointer;
+		}
+		.em-popup {
+			width: calc(70% - 40px);
+			max-width: 40em;
+			height: calc(100% - 80px);
+			position: absolute;
+			left: 40px;
+			top: 40px;
+			padding: 20px;
+			background: $light;
+			margin-left: -100%;
+			z-index: 100;
+			transition: margin 300ms ease;
+			overflow: auto;
+			h2 {
+				margin: 0;
+				text-align: center;
+			}
+			ul {
+				padding: 0;
+				margin: 0;
+				li {
+					list-style: none;
+					padding: .75em 0 0 0;
+				}
+			}
+			a {
+				border-bottom: 2px solid $dark;
+			}
+			&.show {
+				margin-left: 0;
+			}
+		}
+		.map-arrow {
+			width: 40px;
+			height: 40px;
+			position: absolute;
+			top: calc(50% - 20px);
+			color: $dark;
+			z-index: 200;
+			&:hover {
+				cursor: pointer;
+			}
+			&[data-direction="prev"] {
+				left: 0;
+				&::after {
+					content: '\f0d9';
+				}
+			}
+			&[data-direction="next"] {
+				right: 0;
+				&::after {
+					content: '\f0da';
+				}
+			}
+			&::after {
+				width: 100%;
+				height: 100%;
+				font-size: 40px;
+				text-align: center;
+				position: absolute;
+				font-family: 'FontAwesome';
+			}
+		}
+	}
+	.item-showcase {
+		width: 100%;
+		padding: 20px 0 0 0;
+		margin: 0;
+		.item {
+			color: $dark;
+			list-style: none;
+			&.current {
+				color: $medium;
+			}
+			&:hover {
+				color: $medium;
+				cursor: pointer;
+			}
+		}
+	}
+	&.exploratory {
+		.item-showcase {
+
+		}
+	}
+	&.story {
+		.item-showcase {
+			.item {
+				text-align: left;
+				&::before {
+					content: attr(data-index);
+					display: inline;
+					margin-right: 10px;
+				}
+				.title {
+					display: inline;	
+					font-weight: 600;
+				}
+			}
+		}
+	}
+}

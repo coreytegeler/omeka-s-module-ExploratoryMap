@@ -2,7 +2,13 @@
 return [
     'block_layouts' => [
         'invokables' => [
-            'customMap' => 'ExploratoryMap\Site\BlockLayout\ExploratoryMap'
+            'exploratoryMap' => 'ExploratoryMap\Site\BlockLayout\ExploratoryMap',
+        ],
+    ],
+    'view_helpers' => [
+        'factories' => [
+            // 'blockAttachmentsForm' => Service\ViewHelper\ExploratoryMap::class,
+            // 'locationsBlockAttachmentsForm' => 'ExploratoryMap\View\Helper\LocationsBlockAttachmentsForm',
         ],
     ],
     'view_manager' => [
@@ -10,4 +16,5 @@ return [
             OMEKA_PATH . '/modules/ExploratoryMap/view',
         ],
     ],
+
 ];
