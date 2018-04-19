@@ -1,14 +1,19 @@
 $(function() {
-  var clickArrow, clickMarker, createGeoJson, createMap, findItem, findMaps, findMarker, findPopup, flyTo, hoverMarker, layerId, openPopup, populatePopup, preloadPopup, unhoverMarker;
+  var base, bg, clickArrow, clickItem, clickMarker, closePanel, closePopup, createGeoJson, createMap, dark, findItem, findMaps, findMarker, findPanel, findPopup, flyTo, getMarkerData, highlight, hoverMarker, layerId, openPanel, openPopup, populatePanel, populatePopup, resetMap, unhoverMarker;
   window.maps = [];
   window.markers = [];
+  window.bounds = [];
   layerId = 'markers';
+  base = '#fcf8e3';
+  bg = 'beige';
+  dark = '#072605';
+  highlight = '#0dae0b';
   createMap = function(id) {
     var $container, accessToken, map, styleUri;
     $container = $('#' + id);
-    accessToken = 'pk.eyJ1IjoiY29yZXl0ZWdlbGVyIiwiYSI6ImNpd25xNjU0czAyeG0yb3A3cjdkc2NleHAifQ.EJAjj38qZXzIylzax3EMWg';
+    accessToken = 'pk.eyJ1IjoibWN0YmFybmFyZCIsImEiOiJjamZ2ZDJybXUwZXprMnpydnNuOHd6anZnIn0.is86NnAGTq9Zi4FgtDo-Cg';
     mapboxgl.accessToken = accessToken;
-    styleUri = 'mapbox://styles/coreytegeler/cjdpzc01i107c2ro96vjrzk8g';
+    styleUri = 'mapbox://styles/mctbarnard/cjfvd4gii00ch2rqr13ngsrbo';
     map = new mapboxgl.Map({
       container: id,
       style: styleUri,
@@ -16,21 +21,16 @@ $(function() {
     });
     maps[id] = map;
     return map.on('load', function() {
-      createGeoJson(this);
+      createGeoJson(this, id);
       map.on('mouseenter', layerId, hoverMarker);
       map.on('mouseleave', layerId, unhoverMarker);
       map.on('click', layerId, clickMarker);
-      $('.item-showcase .item').on('click', function(e) {
-        var mapId, markerIndex;
-        mapId = $(this).parents('.exploratory-map-block').attr('data-id');
-        markerIndex = this.getAttribute('data-marker-index');
-        return flyTo(mapId, markerIndex);
-      });
-      return $('.exploratory-map .map-arrow').on('click', clickArrow);
+      $('.exploratory-map .map-arrow').on('click', clickArrow);
+      return $('.item-showcase .item').on('click', clickItem);
     });
   };
-  createGeoJson = function(map) {
-    var bounds, container, coords, index, j, lat, layer, len, lng, location, marker, markerObj, markersJson, markersStr, paddedBounds;
+  createGeoJson = function(map, id) {
+    var container, coords, hoverLayer, index, j, lat, layer, len, lng, location, mapBounds, mapId, marker, markerObj, markersJson, markersStr, paddedBounds;
     container = map.getContainer();
     markersStr = container.getAttribute('data-markers');
     if (!markersStr) {
@@ -48,7 +48,30 @@ $(function() {
         }
       },
       'layout': {
-        'icon-image': 'circle-15',
+        'icon-image': 'circle-15-hover',
+        'icon-allow-overlap': true,
+        'icon-ignore-placement': true,
+        'text-allow-overlap': true,
+        'text-ignore-placement': true
+      }
+    };
+    hoverLayer = {
+      'id': layerId + '-hover',
+      'type': 'symbol',
+      'source': {
+        'type': 'geojson',
+        'data': {
+          'type': 'FeatureCollection',
+          'features': []
+        }
+      },
+      'layout': {
+        'icon-image': 'circle-15-hover',
+        'icon-ignore-placement': true,
+        'icon-allow-overlap': true,
+        'icon-ignore-placement': true,
+        'text-allow-overlap': true,
+        'text-ignore-placement': true,
         'text-field': '{title}',
         'text-size': 20,
         'text-font': ['Open Sans Semibold', 'Arial Unicode MS Bold'],
@@ -56,13 +79,13 @@ $(function() {
         'text-anchor': 'top'
       },
       'paint': {
-        'text-color': 'black',
+        'text-color': dark,
         'text-halo-color': 'white',
-        'text-halo-width': 1,
-        'icon-color': 'red'
-      }
+        'text-halo-width': 1
+      },
+      'filter': ['==', 'index', '']
     };
-    bounds = new mapboxgl.LngLatBounds();
+    mapBounds = new mapboxgl.LngLatBounds();
     for (index = j = 0, len = markersJson.length; j < len; index = ++j) {
       markerObj = markersJson[index];
       location = markerObj['location'];
@@ -83,12 +106,14 @@ $(function() {
         }
       };
       layer.source.data.features.push(marker);
+      hoverLayer.source.data.features.push(marker);
       markers.push(marker);
-      bounds.extend(coords);
-      preloadPopup(marker, container, markerObj);
+      mapBounds.extend(coords);
+      getMarkerData(marker, map, markerObj);
     }
     map.addLayer(layer);
-    map.fitBounds(bounds, {
+    map.addLayer(hoverLayer);
+    map.fitBounds(mapBounds, {
       padding: {
         top: 100,
         bottom: 100,
@@ -98,43 +123,65 @@ $(function() {
       animate: false
     });
     paddedBounds = map.getBounds();
-    return $(container).addClass('show');
+    mapId = $(container).attr('id');
+    bounds[mapId] = mapBounds;
+    return $(container).parent().addClass('loaded');
+  };
+  resetMap = function(mapId) {
+    var map, mapBounds;
+    map = maps[mapId];
+    mapBounds = bounds[mapId];
+    return map.fitBounds(mapBounds, {
+      padding: {
+        top: 100,
+        bottom: 100,
+        left: 100,
+        right: 100
+      },
+      animate: true
+    });
   };
   flyTo = function(mapId, markerIndex) {
-    var $block, $item, $items, $nextItem, $nextPopup, blockWidth, coords, map, offsetX, popupPadding, popupWidth;
+    var $block, $item, $items, $nextItem, $nextPanel, blockWidth, coords, map, offsetX, panelPadding, panelWidth;
     map = maps[mapId];
     $block = $(map.getContainer()).parents('.exploratory-map-block');
-    $items = $block.find('.item-showcase .item');
-    $item = $items.filter('[data-marker-index="' + markerIndex + '"]');
-    coords = $item.attr('data-marker-coords');
     $block.find('.item-showcase .item').removeClass('current');
-    $nextItem = findItem(mapId, markerIndex);
-    $nextItem.addClass('current');
-    $block.find('.em-popup').removeClass('show');
-    $nextPopup = findPopup(mapId, markerIndex);
-    popupPadding = parseInt($nextPopup.css('left'));
-    popupWidth = $nextPopup.outerWidth();
-    popupWidth += popupPadding;
-    blockWidth = $block.innerWidth();
-    offsetX = blockWidth / 2 - (blockWidth - popupWidth) / 2;
-    if (coords && coords.length) {
-      coords = JSON.parse(coords);
-      map.flyTo({
-        center: coords,
-        speed: 5,
-        zoom: 9
-      });
-      return map.once('moveend', function(data) {
-        var position;
-        coords = map.getCenter();
-        position = map.project(coords);
-        position.x -= offsetX;
-        coords = map.unproject(position);
+    $block.find('.map-panel').removeClass('show');
+    $items = $block.find('.item-showcase .item');
+    if (markerIndex) {
+      $item = $items.filter('[data-marker-index="' + markerIndex + '"]');
+      $nextItem = findItem(mapId, markerIndex);
+      $nextItem.addClass('current');
+      coords = $item.attr('data-marker-coords');
+      $nextPanel = findPanel(mapId, markerIndex);
+      panelPadding = parseInt($nextPanel.css('left'));
+      panelWidth = $nextPanel.outerWidth();
+      panelWidth += panelPadding;
+      blockWidth = $block.innerWidth();
+      offsetX = blockWidth / 2 - (blockWidth - panelWidth) / 2;
+      if (coords && coords.length) {
+        coords = JSON.parse(coords);
         map.flyTo({
-          center: coords
+          center: coords,
+          speed: 5,
+          zoom: 9
         });
-        return openPopup(mapId, markerIndex);
-      });
+        return map.once('moveend', function(data) {
+          var position;
+          coords = map.getCenter();
+          position = map.project(coords);
+          position.x -= offsetX;
+          coords = map.unproject(position);
+          map.flyTo({
+            center: coords
+          });
+          return openPanel(mapId, markerIndex);
+        });
+      }
+    } else {
+      $nextItem = $items.filter('.hidden');
+      $nextItem.addClass('current');
+      return resetMap(mapId);
     }
   };
   clickArrow = function(e) {
@@ -145,7 +192,7 @@ $(function() {
     $items = $block.find('.item-showcase .item');
     $currentItem = $items.filter('.current');
     if (!$currentItem.length) {
-      $nextItem = $items.first();
+      $nextItem = $items.first().next();
     } else if (direction === 'next') {
       $nextItem = $currentItem.next();
       if (!$nextItem.length) {
@@ -160,58 +207,40 @@ $(function() {
     nextMarkerId = $nextItem.attr('data-marker-index');
     return flyTo(mapId, nextMarkerId);
   };
-  hoverMarker = function(e) {
-    var container;
-    container = e.target.getContainer();
-    return $(container).addClass('marker-hover');
-  };
-  unhoverMarker = function(e) {
-    var container;
-    container = e.target.getContainer();
-    return $(container).removeClass('marker-hover');
-  };
-  clickMarker = function(e) {
-    var container, map, mapId, marker, markerIndex;
-    map = e.target;
-    container = map.getContainer();
-    mapId = container.getAttribute('id');
-    marker = e.features[0];
-    markerIndex = marker.properties.index;
+  clickItem = function(e) {
+    var mapId, markerIndex;
+    mapId = $(this).parents('.exploratory-map-block').attr('data-id');
+    markerIndex = this.getAttribute('data-marker-index');
     return flyTo(mapId, markerIndex);
   };
-  openPopup = function(mapId, markerIndex, api) {
-    var $popup, map;
-    map = maps[mapId];
-    $popup = findPopup(mapId, markerIndex);
-    $popup.addClass('show');
-    return setTimeout(function() {
-      return map.once('click', function(e) {
-        $popup.removeClass('show');
-        return false;
-      });
-    });
-  };
-  preloadPopup = function(marker, map, markerObj) {
-    var $popup, api;
-    $popup = $('<div class="em-popup"></div>').attr('data-marker-index', marker.properties.index).append('<h2>' + marker.properties.title + '</h2>').appendTo(map);
+  getMarkerData = function(marker, map, markerObj) {
+    var api;
     api = markerObj.location['o:item']['@id'];
     return $.ajax({
       type: 'GET',
       dataType: 'json',
       url: api,
       success: function(data) {
-        return populatePopup(data, $popup);
+        populatePopup(marker, map, data);
+        return populatePanel(marker, map, data);
       },
       error: function(jqXHR, status, error) {
         return console.log(jqXHR, status, error);
       }
     });
   };
-  populatePopup = function(data, popup) {
-    var $li, $ul, i, j, k, label, len, len1, resourceId, resourceName, slug, term, terms, text, title, url, val, valObj, vals;
-    console.log(data);
+  populatePopup = function(marker, map, data) {
+    var $block, $item, $popup;
+    $popup = $('<div class="map-popup"></div>').attr('data-marker-index', marker.properties.index).append('<h4>' + marker.properties.title + '</h4>').appendTo(map.getContainer());
+    $block = $(map.getContainer()).parents('.exploratory-map-block');
+    $item = $block.find('.item[data-marker-index="' + marker.properties.index + '"]');
+    return $item.addClass('ready');
+  };
+  populatePanel = function(marker, map, data) {
+    var $li, $panel, $ul, i, j, k, label, len, len1, resourceId, resourceName, slug, term, terms, text, title, url, val, valObj, vals;
+    $panel = $('<div class="map-panel"></div>').attr('data-marker-index', marker.properties.index).append('<h2>' + marker.properties.title + '</h2>').appendTo(map.getContainer());
     $ul = $('<ul></ul>');
-    terms = [['alternative', 'Alt Title'], ['description', 'Description'], ['description', 'Description'], ['references', 'Referenced Items']];
+    terms = [['alternative', 'Alt Title'], ['date', 'Date'], ['description', 'Description'], ['references', 'Referenced Items']];
     for (i = j = 0, len = terms.length; j < len; i = ++j) {
       term = terms[i];
       slug = term[0];
@@ -232,7 +261,7 @@ $(function() {
           } else {
             val = valObj['@value'];
           }
-          if (val.length) {
+          if (val && val.length) {
             text += val;
           }
           $li.append(text);
@@ -240,7 +269,85 @@ $(function() {
       }
       $ul.append($li);
     }
-    return popup.append($ul);
+    return $panel.append($ul);
+  };
+  hoverMarker = function(e) {
+    var container, map, mapId, marker;
+    map = e.target;
+    container = map.getContainer();
+    map.getCanvas().style.cursor = 'pointer';
+    mapId = container.getAttribute('id');
+    marker = e.features[0];
+    map.setFilter(layerId + '-hover', ['==', 'index', marker.properties.index]);
+    return openPopup(mapId, marker);
+  };
+  unhoverMarker = function(e) {
+    var map;
+    map = e.target;
+    map.getCanvas().style.cursor = '';
+    map.setFilter(layerId + '-hover', ['==', 'index', '']);
+    return closePopup(map);
+  };
+  openPopup = function(mapId, markerIndex) {
+    var $popup, map;
+    map = maps[mapId];
+    $popup = findPopup(mapId, markerIndex);
+    return $popup.addClass('show');
+  };
+  closePopup = function(map) {
+    var $container;
+    $container = $(map.getContainer());
+    return $container.find('.map-popup').removeClass('show');
+  };
+  clickMarker = function(e) {
+    var container, map, mapId, marker, markerIndex;
+    map = e.target;
+    container = map.getContainer();
+    mapId = container.getAttribute('id');
+    marker = e.features[0];
+    markerIndex = marker.properties.index;
+    return flyTo(mapId, markerIndex);
+  };
+  openPanel = function(mapId, markerIndex) {
+    var $panel, map;
+    map = maps[mapId];
+    $panel = findPanel(mapId, markerIndex);
+    $panel.addClass('show');
+    return setTimeout(function() {
+      return map.once('click', function(e) {
+        $panel.removeClass('show');
+        return false;
+      });
+    });
+  };
+  closePanel = function(mapId) {
+    var $panel, map;
+    map = maps[mapId];
+    $panel = findPanel(mapId);
+    return $panel.removeClass('show');
+  };
+  findPanel = function(mapId, markerIndex) {
+    var $map, $panel;
+    $map = $('#' + mapId);
+    $panel = $map.find('.map-panel').filter('[data-marker-index="' + markerIndex + '"]');
+    if ($panel.length) {
+      return $panel;
+    }
+    $panel = $map.find('.map-panel');
+    if ($panel.length) {
+      return $panel;
+    } else {
+      return false;
+    }
+  };
+  findPopup = function(mapId, markerIndex) {
+    var $map, $popup;
+    $map = $('#' + mapId);
+    if ($popup = $map.find('.map-popup').filter('[data-marker-index="' + markerIndex + '"]')) {
+      return $popup;
+    } else {
+      return false;
+    }
   };
   findItem = function(mapId, markerIndex) {
     var $block, $item, $items;
@@ -250,15 +357,6 @@ $(function() {
     return $item;
   };
   findMarker = function(mapId, markerIndex) {};
-  findPopup = function(mapId, markerIndex) {
-    var $map, $popup;
-    $map = $('#' + mapId);
-    if ($popup = $map.find('.em-popup').filter('[data-marker-index="' + markerIndex + '"]')) {
-      return $popup;
-    } else {
-      return false;
-    }
-  };
   findMaps = function() {
     return $('.exploratory-map-block').each(function(i, block) {
       var id;

@@ -1,9 +1,10 @@
-$gray: #bdcde3;
-$dark: darken($gray, 50%);
-$medium: darken($gray, 20%);
-$light: lighten($gray, 20%);
-$bg: lighten($gray, 15%);
+$dark: #072605;
+$medium: lighten($dark, 20%);
+$highlight: #0dae0b;
+$lighthigh: lighten($highlight, 8%);
+$light: white;
 .exploratory-map-block {
+	pointer-events: none;
 	.exploratory-map {
 		width: 100%;
 		height: 600px;
@@ -14,13 +15,21 @@ $bg: lighten($gray, 15%);
 		canvas.mapboxgl-canvas {
 			outline: none;
 		}
-		&.show {
-			opacity: 1;
-		}
 		&.marker-hover {
 			cursor: pointer;
 		}
-		.em-popup {
+		.map-popup {
+			background: $light;
+			position: absolute;
+			display: none;
+			h4 {
+				font-size: 10px;
+			}
+			&.show {
+				// display: block;
+			}
+		}
+		.map-panel {
 			width: calc(70% - 40px);
 			max-width: 40em;
 			height: calc(100% - 80px);
@@ -84,41 +93,52 @@ $bg: lighten($gray, 15%);
 			}
 		}
 	}
+	&.loaded {
+		pointer-events: all;
+		.exploratory-map {
+			opacity: 1;
+		}
+	}
 	.item-showcase {
 		width: 100%;
-		padding: 20px 0 0 0;
+		margin: 30px 0 0 0 !important;
+		border: solid $highlight;
+		border-width: 1px 0 0 1px;
 		margin: 0;
 		.item {
 			color: $dark;
 			list-style: none;
+			padding: 15px 15px 15px 15px;
+			border: solid $highlight;
+			border-width: 0 1px 1px 0;
+			line-height: 1.2em;
+			text-align: left;
+			pointer-events: none;
+			.title {
+				display: inline;
+			}
+			&.hidden {
+				display: none !important;
+			}
 			&.current {
-				color: $medium;
+				color: $highlight;
+			}
+			&.ready {
+				pointer-events: all;
 			}
 			&:hover {
-				color: $medium;
+				color: $highlight;
 				cursor: pointer;
+			}
+			&::before {
+				content: attr(data-index);
+				display: inline;
+				margin-right: 10px;
 			}
 		}
 	}
 	&.exploratory {
-		.item-showcase {
-
-		}
 	}
 	&.story {
-		.item-showcase {
-			.item {
-				text-align: left;
-				&::before {
-					content: attr(data-index);
-					display: inline;
-					margin-right: 10px;
-				}
-				.title {
-					display: inline;	
-					font-weight: 600;
-				}
-			}
-		}
 	}
 }
