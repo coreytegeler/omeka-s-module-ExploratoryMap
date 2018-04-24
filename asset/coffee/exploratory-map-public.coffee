@@ -221,7 +221,7 @@ $ ->
 			.attr('data-marker-index', marker.properties.index)
 			.append('<h2>'+marker.properties.title+'</h2>')
 			.appendTo(map.getContainer())
-		$ul = $('<ul></ul>')
+		$properties = $('<div class="properties"></div>')
 		terms = [
 			['alternative','Alt Title']
 			['date','Date']
@@ -233,23 +233,23 @@ $ ->
 			label = term[1]
 			vals = data['dcterms:'+slug]
 			if vals
-				$li = $('<li class="'+slug+'"></li>')
-				$li.append('<strong>'+label+': </strong>');
+				$property = $('<dv class="property '+slug+'"></dv>')
+				$property.append('<h4>'+label+'</h4>');
 				for valObj in vals
 					text = ''
 					if valObj['type'] == 'resource:item'
 						resourceId = valObj['value_resource_id']
 						resourceName = valObj['value_resource_name']
 						title = valObj['display_title']
-						url = valObj['@id']
+						url = valObj['@id'].replace('api','home').replace('items','item')
 						val = '<a href="'+url+'" target="_blank">'+title+'</a>'
 					else
 						val = valObj['@value']
 					if val && val.length
 						text += val
-					$li.append(text)
-			$ul.append($li)
-		$panel.append($ul)
+					$property.append(text)
+			$properties.append($property)
+		$panel.append($properties)
 
 	hoverMarker = (e) ->
 		map = e.target

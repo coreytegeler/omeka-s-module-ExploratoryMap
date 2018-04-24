@@ -237,9 +237,9 @@ $(function() {
     return $item.addClass('ready');
   };
   populatePanel = function(marker, map, data) {
-    var $li, $panel, $ul, i, j, k, label, len, len1, resourceId, resourceName, slug, term, terms, text, title, url, val, valObj, vals;
+    var $panel, $properties, $property, i, j, k, label, len, len1, resourceId, resourceName, slug, term, terms, text, title, url, val, valObj, vals;
     $panel = $('<div class="map-panel"></div>').attr('data-marker-index', marker.properties.index).append('<h2>' + marker.properties.title + '</h2>').appendTo(map.getContainer());
-    $ul = $('<ul></ul>');
+    $properties = $('<div class="properties"></div>');
     terms = [['alternative', 'Alt Title'], ['date', 'Date'], ['description', 'Description'], ['references', 'Referenced Items']];
     for (i = j = 0, len = terms.length; j < len; i = ++j) {
       term = terms[i];
@@ -247,8 +247,8 @@ $(function() {
       label = term[1];
       vals = data['dcterms:' + slug];
       if (vals) {
-        $li = $('<li class="' + slug + '"></li>');
-        $li.append('<strong>' + label + ': </strong>');
+        $property = $('<dv class="property ' + slug + '"></dv>');
+        $property.append('<h4>' + label + '</h4>');
         for (k = 0, len1 = vals.length; k < len1; k++) {
           valObj = vals[k];
           text = '';
@@ -256,7 +256,7 @@ $(function() {
             resourceId = valObj['value_resource_id'];
             resourceName = valObj['value_resource_name'];
             title = valObj['display_title'];
-            url = valObj['@id'];
+            url = valObj['@id'].replace('api', 'home').replace('items', 'item');
             val = '<a href="' + url + '" target="_blank">' + title + '</a>';
           } else {
             val = valObj['@value'];
@@ -264,12 +264,12 @@ $(function() {
           if (val && val.length) {
             text += val;
           }
-          $li.append(text);
+          $property.append(text);
         }
       }
-      $ul.append($li);
+      $properties.append($property);
     }
-    return $panel.append($ul);
+    return $panel.append($properties);
   };
   hoverMarker = function(e) {
     var container, map, mapId, marker;

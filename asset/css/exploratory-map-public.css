@@ -8,7 +8,8 @@
     opacity: 0;
     -webkit-transition: opacity 300ms ease;
     -o-transition: opacity 300ms ease;
-    transition: opacity 300ms ease; }
+    transition: opacity 300ms ease;
+    border: 1px solid #0dae0b; }
     .exploratory-map-block .exploratory-map canvas.mapboxgl-canvas {
       outline: none; }
     .exploratory-map-block .exploratory-map.marker-hover {
@@ -36,15 +37,26 @@
       overflow: auto; }
       .exploratory-map-block .exploratory-map .map-panel h2 {
         margin: 0;
-        text-align: center; }
-      .exploratory-map-block .exploratory-map .map-panel ul {
-        padding: 0;
-        margin: 0; }
-        .exploratory-map-block .exploratory-map .map-panel ul li {
-          list-style: none;
-          padding: .75em 0 0 0; }
+        text-align: left; }
+      .exploratory-map-block .exploratory-map .map-panel .properties .property {
+        list-style: none;
+        padding: .75em 0 0 0; }
+        .exploratory-map-block .exploratory-map .map-panel .properties .property.references a {
+          display: inline;
+          border-bottom-color: #072605;
+          margin-bottom: .25em; }
+          .exploratory-map-block .exploratory-map .map-panel .properties .property.references a::before {
+            content: '';
+            display: block; }
+          .exploratory-map-block .exploratory-map .map-panel .properties .property.references a::last-of-type {
+            margin-bottom: 0; }
+            .exploratory-map-block .exploratory-map .map-panel .properties .property.references a::last-of-type::before {
+              display: none; }
+          .exploratory-map-block .exploratory-map .map-panel .properties .property.references a:hover {
+            color: #0dae0b; }
       .exploratory-map-block .exploratory-map .map-panel a {
-        border-bottom: 2px solid #072605; }
+        display: inline;
+        border-bottom: 1px solid #072605; }
       .exploratory-map-block .exploratory-map .map-panel.show {
         margin-left: 0; }
     .exploratory-map-block .exploratory-map .map-arrow {
@@ -83,6 +95,7 @@
     margin: 0; }
     .exploratory-map-block .item-showcase .item {
       color: #072605;
+      margin: 0;
       list-style: none;
       padding: 15px 15px 15px 15px;
       border: solid #0dae0b;
