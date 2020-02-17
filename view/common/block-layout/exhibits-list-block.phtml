@@ -1,0 +1,19 @@
+<div class="exhibits">
+    <h1>Featured Exhibits</h1>
+    <div class="row">
+    <?php
+    $defaultSiteId = $this->setting('default_site');
+    $sites = $this->api()->search('sites')->getContent();
+    foreach($sites as $exhibit) {
+        if($exhibit->id() != $defaultSiteId) {
+            echo '<div class="col col-4 exhibit">';
+                echo '<a href="'.$this->url('top').$exhibit->slug().'">';
+                    $src = $this->url('top').'files/asset/'.$exhibit->slug().'.jpg';
+                    echo '<img src="'.$src.'"/>';
+                    echo '<h2>'.$exhibit->title().'</h2>';
+                echo '</a>';
+            echo '</div>';
+        }
+    } ?>
+    </div>
+</div>
