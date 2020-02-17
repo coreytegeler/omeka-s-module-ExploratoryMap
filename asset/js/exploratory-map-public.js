@@ -97,7 +97,7 @@ $(function() {
         'properties': {
           'description': markerObj.caption,
           'title': markerObj.title,
-          'index': index,
+          'index': index + 1,
           'item': markerObj.item
         },
         'geometry': {
@@ -142,14 +142,16 @@ $(function() {
     });
   };
   flyTo = function(mapId, markerIndex) {
-    var $block, $item, $items, $nextItem, $nextPanel, blockWidth, coords, map, offsetX, panelPadding, panelWidth;
+    var $block, $currentItem, $item, $items, $nextItem, $nextPanel, blockWidth, coords, currentIndex, map, offsetX, panelPadding, panelWidth;
     map = maps[mapId];
     $block = $(map.getContainer()).parents('.exploratory-map-block');
-    $block.find('.item-showcase .item').removeClass('current');
+    $currentItem = $block.find('.item-showcase .item.current');
+    currentIndex = $currentItem.attr('data-index');
+    $currentItem.removeClass('current');
     $block.find('.map-panel').removeClass('show');
     $items = $block.find('.item-showcase .item');
-    if (markerIndex) {
-      $item = $items.filter('[data-marker-index="' + markerIndex + '"]');
+    if (markerIndex && parseInt(currentIndex) !== parseInt(markerIndex)) {
+      $item = $items.filter('[data-index="' + markerIndex + '"]');
       $nextItem = findItem(mapId, markerIndex);
       $nextItem.addClass('current');
       coords = $item.attr('data-marker-coords');
@@ -204,13 +206,13 @@ $(function() {
         $nextItem = $items.last();
       }
     }
-    nextMarkerId = $nextItem.attr('data-marker-index');
+    nextMarkerId = $nextItem.attr('data-index');
     return flyTo(mapId, nextMarkerId);
   };
   clickItem = function(e) {
     var mapId, markerIndex;
     mapId = $(this).parents('.exploratory-map-block').attr('data-id');
-    markerIndex = this.getAttribute('data-marker-index');
+    markerIndex = this.getAttribute('data-index');
     return flyTo(mapId, markerIndex);
   };
   getMarkerData = function(marker, map, markerObj) {
@@ -231,45 +233,49 @@ $(function() {
   };
   populatePopup = function(marker, map, data) {
     var $block, $item, $popup;
-    $popup = $('<div class="map-popup"></div>').attr('data-marker-index', marker.properties.index).append('<h4>' + marker.properties.title + '</h4>').appendTo(map.getContainer());
+    $popup = $('<div class="map-popup"></div>').attr('data-index', marker.properties.index).append('<h4>' + marker.properties.title + '</h4>').appendTo(map.getContainer());
     $block = $(map.getContainer()).parents('.exploratory-map-block');
-    $item = $block.find('.item[data-marker-index="' + marker.properties.index + '"]');
+    $item = $block.find('.item[data-index="' + marker.properties.index + '"]');
     return $item.addClass('ready');
   };
   populatePanel = function(marker, map, data) {
-    var $panel, $properties, $property, i, j, k, label, len, len1, resourceId, resourceName, slug, term, terms, text, title, url, val, valObj, vals;
-    $panel = $('<div class="map-panel"></div>').attr('data-marker-index', marker.properties.index).append('<h2>' + marker.properties.title + '</h2>').appendTo(map.getContainer());
-    $properties = $('<div class="properties"></div>');
-    terms = [['alternative', 'Alt Title'], ['date', 'Date'], ['description', 'Description'], ['references', 'Referenced Items']];
+    var $html, $inner, $panel, $properties, $property, $scroll, i, j, k, label, len, len1, resourceId, resourceName, slug, src, term, terms, title, url, valObj, vals;
+    $panel = $('<div class="map-panel"></div>').attr('data-index', marker.properties.index).append('<header><h2>' + marker.properties.title + '</h2></header>').appendTo(map.getContainer());
+    $scroll = $('<div class="scroll"></div>').appendTo($panel);
+    $inner = $('<div class="inner"></div>').appendTo($scroll).append('<h2>' + marker.properties.title + '</h2>');
+    $properties = $('<div class="properties"></div>').appendTo($inner);
+    terms = [['alternative', 'Alt Title'], ['date', 'Date'], ['description', 'Description'], ['references', 'Referenced Items'], ['mediator', 'Media']];
     for (i = j = 0, len = terms.length; j < len; i = ++j) {
       term = terms[i];
       slug = term[0];
       label = term[1];
       vals = data['dcterms:' + slug];
       if (vals) {
-        $property = $('<dv class="property ' + slug + '"></dv>');
+        $property = $('<div class="property ' + slug + '"></div>');
         $property.append('<h4>' + label + '</h4>');
         for (k = 0, len1 = vals.length; k < len1; k++) {
           valObj = vals[k];
-          text = '';
           if (valObj['type'] === 'resource:item') {
             resourceId = valObj['value_resource_id'];
             resourceName = valObj['value_resource_name'];
             title = valObj['display_title'];
             url = valObj['@id'].replace('api', 'home').replace('items', 'item');
-            val = '<a href="' + url + '" target="_blank">' + title + '</a>';
+            $html = $('<a href="' + url + '" target="_blank"></a>');
+            if (valObj['property_label'] === 'Mediator') {
+              src = valObj['thumbnail_url'];
+              $html.append($('<img src="' + src + '"/>'));
+            } else {
+              $html.html(title);
+            }
+            $property.append($html);
           } else {
-            val = valObj['@value'];
+            $property.append(valObj['@value']);
           }
-          if (val && val.length) {
-            text += val;
-          }
-          $property.append(text);
         }
       }
       $properties.append($property);
     }
-    return $panel.append($properties);
+    return $inner.append($properties);
   };
   hoverMarker = function(e) {
     var container, map, mapId, marker;
@@ -329,7 +335,7 @@ $(function() {
   findPanel = function(mapId, markerIndex) {
     var $map, $panel;
     $map = $('#' + mapId);
-    $panel = $map.find('.map-panel').filter('[data-marker-index="' + markerIndex + '"]');
+    $panel = $map.find('.map-panel').filter('[data-index="' + markerIndex + '"]');
     if ($panel.length) {
       return $panel;
     }
@@ -343,7 +349,7 @@ $(function() {
   findPopup = function(mapId, markerIndex) {
     var $map, $popup;
     $map = $('#' + mapId);
-    if ($popup = $map.find('.map-popup').filter('[data-marker-index="' + markerIndex + '"]')) {
+    if ($popup = $map.find('.map-popup').filter('[data-index="' + markerIndex + '"]')) {
       return $popup;
     } else {
       return false;
@@ -353,7 +359,7 @@ $(function() {
     var $block, $item, $items;
     $block = $('.exploratory-map-block[data-id="' + mapId + '"]');
     $items = $block.find('.item-showcase .item');
-    $item = $items.filter('[data-marker-index="' + markerIndex + '"]');
+    $item = $items.filter('[data-index="' + markerIndex + '"]');
     return $item;
   };
   findMarker = function(mapId, markerIndex) {};

@@ -50,16 +50,6 @@ $ ->
 				'icon-ignore-placement': true
 				'text-allow-overlap': true
 				'text-ignore-placement': true
-				# 'icon-ignore-placement': true
-				# # 'text-field': '{title}'
-				# 'text-size': 20
-				# 'text-font': ['Open Sans Semibold', 'Arial Unicode MS Bold']
-				# 'text-offset': [0, 0.6]
-				# 'text-anchor': 'top'
-			# 'paint':
-			# 	'text-color': dark
-			# 	'text-halo-color': 'white'
-			# 	'text-halo-width': 1
 
 		hoverLayer = 
 			'id': layerId+'-hover',
@@ -99,7 +89,7 @@ $ ->
 				'properties':
 					'description': markerObj.caption
 					'title': markerObj.title
-					'index': index
+					'index': index+1
 					'item': markerObj.item
 				'geometry':
 					'type': 'Point'
@@ -137,11 +127,13 @@ $ ->
 	flyTo = (mapId, markerIndex) ->
 		map = maps[mapId]
 		$block = $(map.getContainer()).parents('.exploratory-map-block')
-		$block.find('.item-showcase .item').removeClass('current')
+		$currentItem = $block.find('.item-showcase .item.current')
+		currentIndex = $currentItem.attr('data-index')
+		$currentItem.removeClass('current')
 		$block.find('.map-panel').removeClass('show')
 		$items = $block.find('.item-showcase .item')
-		if markerIndex
-			$item = $items.filter('[data-marker-index="'+markerIndex+'"]')
+		if markerIndex && parseInt(currentIndex) != parseInt(markerIndex)
+			$item = $items.filter('[data-index="'+markerIndex+'"]')
 			$nextItem = findItem(mapId, markerIndex)
 			$nextItem.addClass('current')
 			coords = $item.attr('data-marker-coords')
@@ -187,12 +179,12 @@ $ ->
 			if !$nextItem.length
 				$nextItem = $items.last()
 		
-		nextMarkerId = $nextItem.attr('data-marker-index')
+		nextMarkerId = $nextItem.attr('data-index')
 		flyTo(mapId, nextMarkerId)
 
 	clickItem = (e) ->
 		mapId = $(this).parents('.exploratory-map-block').attr('data-id')
-		markerIndex = this.getAttribute('data-marker-index')
+		markerIndex = this.getAttribute('data-index')
 		flyTo(mapId, markerIndex)
 
 	getMarkerData = (marker, map, markerObj) ->
@@ -209,47 +201,58 @@ $ ->
 
 	populatePopup = (marker, map, data) ->
 		$popup = $('<div class="map-popup"></div>')
-			.attr('data-marker-index', marker.properties.index)
+			.attr('data-index', marker.properties.index)
 			.append('<h4>'+marker.properties.title+'</h4>')
 			.appendTo(map.getContainer())
 		$block = $(map.getContainer()).parents('.exploratory-map-block')
-		$item = $block.find('.item[data-marker-index="'+marker.properties.index+'"]')
+		$item = $block.find('.item[data-index="'+marker.properties.index+'"]')
 		$item.addClass('ready')
 
 	populatePanel = (marker, map, data) ->
 		$panel = $('<div class="map-panel"></div>')
-			.attr('data-marker-index', marker.properties.index)
-			.append('<h2>'+marker.properties.title+'</h2>')
+			.attr('data-index', marker.properties.index)
+			.append('<header><h2>'+marker.properties.title+'</h2></header>')
 			.appendTo(map.getContainer())
+		$scroll = $('<div class="scroll"></div>')
+			.appendTo($panel)
+		$inner = $('<div class="inner"></div>')
+			.appendTo($scroll)
+			.append('<h2>'+marker.properties.title+'</h2>')
 		$properties = $('<div class="properties"></div>')
+			.appendTo($inner)
 		terms = [
 			['alternative','Alt Title']
 			['date','Date']
 			['description','Description']
 			['references','Referenced Items']
+			['mediator','Media']
 		]
 		for term, i in terms
 			slug = term[0]
 			label = term[1]
 			vals = data['dcterms:'+slug]
 			if vals
-				$property = $('<dv class="property '+slug+'"></dv>')
+				$property = $('<div class="property '+slug+'"></div>')
 				$property.append('<h4>'+label+'</h4>');
 				for valObj in vals
-					text = ''
 					if valObj['type'] == 'resource:item'
 						resourceId = valObj['value_resource_id']
 						resourceName = valObj['value_resource_name']
 						title = valObj['display_title']
 						url = valObj['@id'].replace('api','home').replace('items','item')
-						val = '<a href="'+url+'" target="_blank">'+title+'</a>'
+						$html = $('<a href="'+url+'" target="_blank"></a>')
+						if valObj['property_label'] == 'Mediator'
+							src = valObj['thumbnail_url']
+							$html.append($('<img src="'+src+'"/>'))
+						else
+							$html.html(title)
+						# $html.append(title)
+						$property.append($html)
 					else
-						val = valObj['@value']
-					if val && val.length
-						text += val
-					$property.append(text)
+						$property.append(valObj['@value'])
+					
 			$properties.append($property)
-		$panel.append($properties)
+		$inner.append($properties)
 
 	hoverMarker = (e) ->
 		map = e.target
@@ -299,7 +302,7 @@ $ ->
 
 	findPanel = (mapId, markerIndex) ->
 		$map = $('#'+mapId)
-		$panel = $map.find('.map-panel').filter('[data-marker-index="'+markerIndex+'"]')
+		$panel = $map.find('.map-panel').filter('[data-index="'+markerIndex+'"]')
 		if $panel.length
 			return $panel
 		$panel = $map.find('.map-panel')
@@ -310,7 +313,7 @@ $ ->
 
 	findPopup = (mapId, markerIndex) ->
 		$map = $('#'+mapId)
-		if $popup = $map.find('.map-popup').filter('[data-marker-index="'+markerIndex+'"]')
+		if $popup = $map.find('.map-popup').filter('[data-index="'+markerIndex+'"]')
 			return $popup
 		else
 			return false
@@ -318,7 +321,7 @@ $ ->
 	findItem = (mapId, markerIndex) ->
 		$block = $('.exploratory-map-block[data-id="'+mapId+'"]')
 		$items = $block.find('.item-showcase .item')
-		$item = $items.filter('[data-marker-index="'+markerIndex+'"]')
+		$item = $items.filter('[data-index="'+markerIndex+'"]')
 		return $item
 
 	findMarker = (mapId, markerIndex) ->

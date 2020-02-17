@@ -1,8 +1,8 @@
 $dark: #072605;
 $medium: lighten($dark, 20%);
 $highlight: #0dae0b;
-$lighthigh: lighten($highlight, 8%);
-$light: white;
+$light: #f2f0df;
+$lighter: #fffbf8;
 .exploratory-map-block {
 	pointer-events: none;
 	.exploratory-map {
@@ -10,17 +10,17 @@ $light: white;
 		height: 600px;
 		overflow: hidden;
 		position: relative;
-		opacity: 0;
 		transition: opacity 300ms ease;
 		border: 1px solid $highlight;
-		canvas.mapboxgl-canvas {
+		* {
 			outline: none;
+			opacity: 0;
 		}
 		&.marker-hover {
 			cursor: pointer;
 		}
 		.map-popup {
-			background: $light;
+			background: $lighter;
 			position: absolute;
 			display: none;
 			h4 {
@@ -37,24 +37,62 @@ $light: white;
 			position: absolute;
 			left: 40px;
 			top: 40px;
-			padding: 20px;
 			background: $light;
 			margin-left: -100%;
 			z-index: 100;
 			transition: margin 300ms ease;
-			overflow: auto;
+			border: 1px solid $highlight;
+			overflow: hidden;
+			header {
+				width: 100%;
+				position: absolute;
+				background: $light;
+				border-bottom: 1px solid $highlight;
+				left: 0;
+				top: 0;
+				padding: 20px;
+				margin: 0;
+			}
 			h2 {
 				margin: 0;
 				text-align: left;
 			}
+			.scroll {
+				width: 100%;
+				height: 100%;
+				overflow-y: auto;
+				.inner {
+					padding: 20px;
+				}
+			}
 			.properties {
+				width: 100%;
+				height: 100%;
+				overflow: auto;
+				border: 0;
 				.property {
 					list-style: none;
 					padding: .75em 0 0 0;
+			    white-space: pre-line;
+			    border: 0;
+			    &:not(:first-of-type) {
+			    	border-top: 1px $highlight solid;
+			    }
+			    a {
+			    	display: inline;
+						border-bottom-color: inherit;
+			    	&:hover {
+							color: $highlight;
+						}
+			    }
+			    &.mediator {
+			    	a {
+			    		border: 0;
+			    		display: table;
+			    	}
+			    }
 					&.references {
 						a {
-							display: inline;
-							border-bottom-color: $dark;
 							&::before {
 								content: '';
 								display: block;
@@ -65,9 +103,6 @@ $light: white;
 								&::before {
 									display: none;
 								}
-							}
-							&:hover {
-								color: $highlight;
 							}
 						}
 					}
@@ -115,7 +150,7 @@ $light: white;
 	}
 	&.loaded {
 		pointer-events: all;
-		.exploratory-map {
+		.exploratory-map * {
 			opacity: 1;
 		}
 	}
