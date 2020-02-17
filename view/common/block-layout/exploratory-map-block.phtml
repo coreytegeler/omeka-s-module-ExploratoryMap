@@ -1,0 +1,33 @@
+<?php 
+	echo '</div>';
+echo '</div>';
+echo '<div class="col col-12">';
+	echo '<div class="exploratory-map-block row ' . $mapType . '">';
+		
+		$mapInner = '';
+		if($mapType == 'story') {
+			$mapInner .= '<div class="map-arrow" data-direction="prev"></div>';	
+			$mapInner .= '<div class="map-arrow" data-direction="next"></div>';
+		}
+
+		echo '<div class="exploratory-map" data-markers="' . $this->escapeHtml(json_encode($markers)) . '">'.$mapInner.'</div>';
+		echo '<div class="item-showcase">';
+			echo '<div class="item hidden" data-index="0"></div>';
+		  foreach ($markers as $marker_index => $marker):
+		  	$location = $marker['location'];
+		  	$item = $marker['item'];
+		  	$lng = $location['o-module-mapping:lng'];
+		  	$lat = $location['o-module-mapping:lat'];
+		  	$api = $location['o:item']['@id'];
+		  	$marker_coords = '['.$lng.','.$lat.']';
+		    echo '<div class="item col-6 col-md-4 col-lg-3" data-item-api="' . $api . '" data-index="' . ($marker_index+1) . '"  data-marker-coords="' . $this->escapeHtml($marker_coords) . '">';
+		      echo '<span class="title">' . $marker['title'] .'</span>';
+		    echo '</div>';
+		  endforeach;    
+		echo '</div>';
+	echo '</div>';
+echo '</div>';
+echo '<div class="col col-4"></div>';
+echo '<div class="col col-8">';
+	echo '<div class="column">';
+?>
