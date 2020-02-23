@@ -1,19 +1,19 @@
 <?php
-namespace ExhibitsList;
+namespace ExploratoryMap;
 return [
     'block_layouts' => [
         'invokables' => [
-            'exhibitsList' => 'ExhibitsList\Site\BlockLayout\ExhibitsList',
+            'exploratoryMap' => 'ExploratoryMap\Site\BlockLayout\ExploratoryMap',
         ],
     ],
     'view_helpers' => [
         'factories' => [
-            'blockAttachmentsForm' => Service\ViewHelper\ExhibitsList::class,
+            'blockAttachmentsForm' => Service\ViewHelper\ExploratoryMap::class,
         ],
     ],
     'view_manager' => [
         'template_path_stack' => [
-            OMEKA_PATH . '/modules/ExhibitsList/view',
+            OMEKA_PATH . '/modules/ExploratoryMap/view',
         ],
         'template_map' => [
             'omeka/site-admin/page/edit' => OMEKA_PATH . '/themes/view-from-ginling/view/omeka/site-admin/page/edit.phtml',

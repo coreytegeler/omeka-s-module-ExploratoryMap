@@ -1,5 +1,5 @@
 <?php
-namespace ExhibitsList;
+namespace ExploratoryMap;
 
 use Omeka\Module\AbstractModule;
 use ExhibitList\Form\ConfigForm;
