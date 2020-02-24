@@ -1,5 +1,4 @@
 <?php
-namespace ExploratoryMap;
 return [
     'block_layouts' => [
         'invokables' => [
@@ -8,16 +7,14 @@ return [
     ],
     'view_helpers' => [
         'factories' => [
-            'blockAttachmentsForm' => Service\ViewHelper\ExploratoryMap::class,
+            // 'blockAttachmentsForm' => Service\ViewHelper\ExploratoryMap::class,
+            // 'locationsBlockAttachmentsForm' => 'ExploratoryMap\View\Helper\LocationsBlockAttachmentsForm',
         ],
     ],
     'view_manager' => [
         'template_path_stack' => [
             OMEKA_PATH . '/modules/ExploratoryMap/view',
         ],
-        'template_map' => [
-            'omeka/site-admin/page/edit' => OMEKA_PATH . '/themes/view-from-ginling/view/omeka/site-admin/page/edit.phtml',
-         ],
     ],
 
 ];

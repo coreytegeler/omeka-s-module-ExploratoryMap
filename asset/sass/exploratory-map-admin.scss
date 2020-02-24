@@ -1,0 +1,59 @@
+// .block {
+// 	.inputs {
+// 		label {
+// 			margin-right: 5px;
+// 		}
+// 	}
+// 	.attachment {
+// 		display: block;
+// 		padding: 0 0 10px 0;
+// 		.attachment-row {
+// 			display: flex;
+// 		  align-items: center;
+// 		  position: relative;
+// 		}
+// 		.item-title {
+// 			flex: 1;
+// 			input {
+// 				width: 100%;
+// 			}
+// 		}
+// 		.inputs-row {
+// 			a.expand, a.collapse {
+// 				h5 {
+// 					width: 100%;
+// 					text-align: right;
+// 				}
+// 			}
+// 			.inputs {
+// 				width: 100%;
+// 				display: flex;
+// 				justify-content: space-between;
+// 				flex-wrap: wrap;
+// 				clear: both;
+// 				padding: 0 0 10px 0;
+// 				.input {
+// 					width: 100%;
+// 					&.half {
+// 						width: calc(50% - 5px);
+// 					}
+// 				}
+// 				input {
+// 					margin-top: 0;
+// 				}
+// 				textarea {
+// 					display: none;
+// 				}
+// 				.cke_editable {
+// 					width: 100%;
+// 				}
+// 			}
+// 		}
+// 		&.delete {
+// 			.inputs {
+// 				display: none;
+// 			}
+// 		}
+// 	}
+// }
+
