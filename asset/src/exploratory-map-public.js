@@ -42,10 +42,6 @@ class ExploratoryMap {
 		this.map.on('mouseleave', "markers", this.unhoverMarker.bind(this));
 		this.map.on("click", "markers", this.clickMarker.bind(this));
 
-		this.block.querySelectorAll(".map-arrow").forEach(function(arrow, i) {
-			arrow.addEventListener("mousedown", self.clickArrow.bind(self));
-		});
-
 		this.block.querySelectorAll(".item").forEach(function(item, i) {
 			item.addEventListener("mousedown", self.clickItem.bind(self));
 		});
@@ -284,8 +280,8 @@ class ExploratoryMap {
 					zoom: 8
 				});
 				this.map.once("moveend", function(data) {
-					let centerCoords = self.map.getCenter(),
-							position = self.map.project(centerCoords);
+					let centerCoords = self.map.getCenter();
+					const position = self.map.project(centerCoords);
 					position.x -= offsetX;
 
 					centerCoords = self.map.unproject(position);
@@ -427,8 +423,8 @@ class ExploratoryMap {
 						link.target = "_blank";
 
 						if (valObj['property_label'] === 'Mediator') {
-							src = valObj['thumbnail_url'];
-							let img = document.createElement("img");
+							const src = valObj['thumbnail_url'],
+										img = document.createElement("img");
 							img.src = src;
 							link.appendChild(img);
 						} else {
@@ -469,7 +465,7 @@ class ExploratoryMap {
 	};
 
 	closePopup() {
-		let popup = this.container.querySelector(".map-popup")
+		let popup = this.container.querySelector(".map-popup.show")
 		if(popup) {
 			popup.classList.remove("show");
 		}
@@ -483,7 +479,7 @@ class ExploratoryMap {
 
 	openPanel(markerIndex) {
 		const self = this,
-				panel = this.findPanel(markerIndex);
+					panel = this.findPanel(markerIndex);
 		panel.classList.add("show");
 		setTimeout(function() {
 			self.map.once("click", function(e) {
@@ -504,7 +500,10 @@ class ExploratoryMap {
 	};
 
 	findPanel(markerIndex) {
-		let panel = this.container.querySelector(".map-panel[data-index='" + markerIndex + "']");
+		let panel;
+		if(markerIndex) {
+			panel = this.container.querySelector(".map-panel[data-index='" + markerIndex + "']");
+		}
 		if(panel) {
 			return panel;
 		}
