@@ -3,6 +3,9 @@ namespace ExploratoryMap\Site\BlockLayout;
 
 use Zend\Form\Element\Select;
 use Zend\Form\Element\Text;
+use Zend\Form\Element\Textarea;
+use Omeka\Form\Element\ResourceSelect;
+use Omeka\Form\Element\ItemSetSelect;
 use Omeka\Api\Representation\SiteRepresentation;
 use Omeka\Api\Representation\SitePageRepresentation;
 use Omeka\Api\Representation\SitePageBlockRepresentation;
@@ -14,90 +17,162 @@ use Zend\ServiceManager\ServiceLocatorInterface;
 
 class ExploratoryMap extends AbstractBlockLayout
 {
-    public function getLabel()
-    {
-        return 'Exploratory Map'; // @translate
-    }
 
-    public function prepareForm(PhpRenderer $view)
-    {
-        $view->headLink()->appendStylesheet($view->assetUrl('css/exploratory-map-admin.css', 'ExploratoryMap'));
-    }
+	public function handleMapValues( $values, $default )
+	{
+		$arr = array();
+		$valuesSplit = preg_split( '/\r\n|\n|\r/', $values );
 
-    public function form(PhpRenderer $view, SiteRepresentation $site,
-        SitePageRepresentation $page = null, SitePageBlockRepresentation $block = null
-    ) {
-        $html = '';
-        $mapType = new Select("o:block[__blockIndex__][o:data][mapType]");
+		if( $values && is_array( $valuesSplit ) ) {
+			foreach( $valuesSplit as $key => $value ) {
+				$valueArr = explode( ' : ', $value );
+				$arr[] = array(
+					'name' => $valueArr[0],
+					'url' => trim( $valueArr[1], ' ' )
+				);
+			}
+		} else {
+			$arr[] = array(
+				'name' => 'Default',
+				'url' => $default
+			);
+		}
+		return $arr;
+	}
 
-        $mapType->setValueOptions([
-            'exploratory' => 'Exploratory',
-            'story' => 'Story'
-        ]);
-    
-        if ($block && $block->dataValue('mapType')) {
-            $mapType->setAttribute('value', $block->dataValue('mapType'));
-        } else {
-            $mapType->setAttribute('value', 'exploratory');
-        }
 
-        $html .= '<div class="field"><div class="field-meta">';
-        $html .= '<label>' . $view->translate('Map Type') . '</label>';
-        $html .= '</div>';
-        $html .= '<div class="inputs">' . $view->formRow($mapType) . '</div>';
-        $html .= '</div>';
+	public function getLabel()
+	{
+		return 'Exploratory Map'; // @translate
+	}
 
-        $html .= $view->blockAttachmentsForm($block);
-        
-        return $html;
-    }
+	public function prepareForm(PhpRenderer $view)
+	{
+		$view->headLink()->appendStylesheet($view->assetUrl('exploratory-map-admin.css', 'ExploratoryMap'));
+	}
 
-    public function render(PhpRenderer $view, SitePageBlockRepresentation $block)
-    {
-        $view->headLink()->appendStylesheet($view->assetUrl('css/exploratory-map-public.css', 'ExploratoryMap'));
-        $view->headScript()->appendFile($view->assetUrl('js/jquery-3.3.1.min.js', 'ExploratoryMap'), 'text/javascript');
-        $view->headScript()->appendFile($view->assetUrl('js/mapbox-gl.js', 'ExploratoryMap'), 'text/javascript');
-        $view->headScript()->appendFile($view->assetUrl('js/exploratory-map-public.js', 'ExploratoryMap'), 'text/javascript');
+	public function form(PhpRenderer $view, SiteRepresentation $site, SitePageRepresentation $page = null, SitePageBlockRepresentation $block = null
+	) {
+		$html = '';
 
-        $attachments = $block->attachments();
-        if (!$attachments) {
-            return '';
-        }
+		// Map Type Select
+		$mapTypeSelect = new Select("o:block[__blockIndex__][o:data][mapType]");
+		$mapTypeSelect->setOptions([
+			'label' => 'Mapbox Type',
+			'info' => '',
+		]);
+		$mapTypeSelect->setValueOptions([
+			'exploratory' => 'Exploratory',
+			'story' => 'Story',
+			'layered' => 'Layered',
+		]);
+		$mapTypeValue = $block ? $block->dataValue('mapType') : null;
+		$mapTypeSelect->setAttributes([
+			'value' => $mapTypeValue
+		]);
+		$html .= $view->formRow($mapTypeSelect);
 
-        $markers = array();
-        $markerIndex = 0;
-        foreach ($attachments as $index => $attachment) {
-            $item = $attachment->item();
-            $locations = $view->api()->search(
-                'mapping_markers',
-                ['item_id' => $item->id()]
-            )->getContent();
-            $locationsArray = json_decode(json_encode($locations), true);
-            if(!empty($locationsArray)) {
-                foreach ($locationsArray as $location) {
-                    $marker = array();
-                    $marker['location'] = $location;
-                    $media = $attachment->media() ?: $item->primaryMedia();
-                    if ($media):
-                        $marker['thumbnail'] =  $view->thumbnail($media, $view->thumbnailType);
-                        $marker['filename'] = $media->displayTitle();
-                    endif;
-                    if ($item):
-                        $marker['item'] = $item->id();
-                    endif;
-                    $marker['title'] = $item->displayTitle();
-                    $marker['link'] = $item->link($item->displayTitle());
-                    $markers[$markerIndex] = $marker;
-                    $markerIndex++;
-                }
-            }
-        }
-        // print_r($marker);
+		// Basemaps
+		$basemapsInput = new Textarea("o:block[__blockIndex__][o:data][basemaps]");
+		$basemapsInput->setOptions([
+			'label' => 'Basemaps',
+			'info' => 'Enter each basemap on a new line. Specify both a value and label like this: Map Name : url://abc',
+		]);
+		$basemapsValue = $block ? $block->dataValue('basemaps') : null;
+		$basemapsInput->setAttributes([
+			'value' => $basemapsValue
+		]);
+		$html .= $view->formRow($basemapsInput);
 
-        return $view->partial('common/block-layout/exploratory-map-block', [
-            'block' => $block,
-            'mapType' => $block->dataValue('mapType'),
-            'markers' => $markers,
-        ]);
-    }
+
+		// Map Styles
+		$overlaysInput = new Textarea("o:block[__blockIndex__][o:data][overlays]");
+		$overlaysInput->setOptions([
+			'label' => 'Map Overlays',
+			'info' => 'Enter each map overlay on a new line. Specify both a value and label like this: Overlay Name : url://abc',
+		]);
+		$overlaysValue = $block ? $block->dataValue('overlays') : null;
+		$overlaysInput->setAttributes([
+			'value' => $overlaysValue
+		]);
+		$html .= $view->formRow($overlaysInput);
+
+		// Access Token
+		$accessTokenInput = new Text("o:block[__blockIndex__][o:data][accessToken]");
+		$accessTokenInput->setOptions([
+			'label' => 'Mapbox Access Token',
+			'info' => '',
+		]);
+		$accessTokenValue = $block ? $block->dataValue('accessToken') : null;
+		$accessTokenInput->setAttributes([
+			'value' => $accessTokenValue
+		]);
+		$html .= $view->formRow($accessTokenInput);
+
+		// Location Attachments Form
+		$html .= $view->blockAttachmentsForm($block);
+		
+		return $html;
+
+	}
+
+	public function render(PhpRenderer $view, SitePageBlockRepresentation $block)
+	{
+		$prod = $_SERVER['HTTP_HOST'] == 'localhost';
+		$dep_file_name = 'exploratory-map-public' . ( $prod ? '.min' : '' );
+
+		$view->headLink()->appendStylesheet($view->assetUrl($dep_file_name . '.css', 'ExploratoryMap'));
+		$view->headScript()->appendFile($view->assetUrl('jquery-3.3.1.min.js', 'ExploratoryMap'), 'text/javascript');
+		$view->headScript()->appendFile($view->assetUrl('mapbox-gl.js', 'ExploratoryMap'), 'text/javascript');
+		$view->headScript()->appendFile($view->assetUrl($dep_file_name . '.js', 'ExploratoryMap'), 'text/javascript');
+
+		$attachments = $block->attachments();
+		if (!$attachments) {
+			return '';
+		}
+
+		$markers = array();
+		$markerIndex = 0;
+
+		foreach( $attachments as $index => $attachment ) {
+			$item = $attachment->item();
+			$locations = $view->api()->search(
+				'mapping_markers',
+				['item_id' => $item->id()]
+			)->getContent();
+			$locationsArray = json_decode( json_encode( $locations ), true );
+			if( !empty( $locationsArray ) ) {
+				foreach ( $locationsArray as $location ) {
+					$marker = array();
+					$marker['location'] = $location;
+					$media = $attachment->media() ?: $item->primaryMedia();
+					if( $media ) {
+						$marker['thumbnail'] =  $view->thumbnail( $media, $view->thumbnailType );
+						$marker['filename'] = $media->displayTitle();
+					}
+					if( $item ) {
+						$marker['item'] = $item->id();
+					}
+					if( $item->value( 'dcterms:type' ) ) {
+						$marker['type'] = $item->value( 'dcterms:type' )->value();
+					}
+					$marker['title'] = $item->displayTitle();
+					$marker['link'] = $item->link( $item->displayTitle() );
+					$markers[$markerIndex] = $marker;
+					$markerIndex++;
+				}
+			}
+		}
+	
+
+		return $view->partial('common/block-layout/exploratory-map-block', [
+			'block' => $block,
+			'mapType' => $block->dataValue('mapType'),
+			'accessToken' => $block->dataValue('accessToken'),
+			'basemaps' => $this->handleMapValues( $block->dataValue( 'basemaps' ), 'mapbox://styles/mapbox/light-v9' ),
+			'overlays' => $this->handleMapValues( $block->dataValue( 'overlays' ), null ),
+			'markers' => $markers,
+		]);
+	}
+
 }

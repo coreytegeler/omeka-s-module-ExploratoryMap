@@ -1,33 +1,66 @@
-<?php 
-	echo '</div>';
-echo '</div>';
-echo '<div class="col col-12">';
-	echo '<div class="exploratory-map-block row ' . $mapType . '">';
-		
-		$mapInner = '';
-		if($mapType == 'story') {
-			$mapInner .= '<div class="map-arrow" data-direction="prev"></div>';	
-			$mapInner .= '<div class="map-arrow" data-direction="next"></div>';
-		}
+	</div>
+</div>
 
-		echo '<div class="exploratory-map" data-markers="' . $this->escapeHtml(json_encode($markers)) . '">'.$mapInner.'</div>';
-		echo '<div class="item-showcase">';
-			echo '<div class="item hidden" data-index="0"></div>';
-		  foreach ($markers as $marker_index => $marker):
+<div class="col col-12">
+	<div class="exploratory-map-block row <?= $mapType ?>" data-markers="<?= $this->escapeHtml( json_encode( $markers ) ) ?>" data-basemap="<?= $this->escapeHtml( $basemaps[0]['url'] ) ?>" data-access-token="<?= $this->escapeHtml( $accessToken ) ?>">
+	
+		<div class="map-container">
+
+			<?php if( $mapType == 'story' ) { ?>
+				<div class="map-arrow" data-direction="prev"></div>
+				<div class="map-arrow" data-direction="next"></div>
+			<?php } ?>
+
+			<?php if( $mapType == 'layered' ) { ?>
+
+				<div class="layer-forms">
+
+					<form class="layer-form layer-selector" data-layer-type="overlay">
+						<h3>Historicals maps</h3>
+						<!-- <input type="checkbox" name="overlay" value="" id="overlay-null"/> -->
+						<?php foreach ( $overlays as $index => $value) { ?>
+							<input class="pseudo-radio" type="checkbox" name="overlay" value="<?= $value['url'] ?>" id="overlay-<?= $index ?>"/>
+							<label for="overlay-<?= $index ?>"><?= $value['name'] ?></label>
+						<?php } ?>
+					</form>
+
+					<form class="layer-form layer-filter" data-layer-type="markers">
+						<h3>Incident type</h3>
+						<input type="checkbox" name="markers" value="Type 1" id="type-1"/>
+						<label for="type-1">Type 1</label>
+
+						<input type="checkbox" name="markers" value="Type 2" id="type-2"/>
+						<label for="type-2">Type 2</label>
+					</form>
+
+					<form class="layer-form layer-selector" data-layer-type="basemap">
+						<h3>Basemaps</h3>
+						<?php foreach ( $basemaps as $index => $value) { ?>
+							<input type="radio" name="basemap" value="<?= $value['url'] ?>" id="basemap-<?= $index ?>" <?= $index === 0 ? "checked" : null ?>/>
+							<label for="basemap-<?= $index ?>"><?= $value['name'] ?></label>
+						<?php } ?>
+					</form>
+					
+				</div>
+			<?php } ?>
+
+		</div>
+		<div class="item-showcase">
+			<!-- <div class="item hidden" data-index="0"></div> -->
+		  <?php foreach ( $markers as $markerIndex => $marker ) {
 		  	$location = $marker['location'];
 		  	$item = $marker['item'];
 		  	$lng = $location['o-module-mapping:lng'];
 		  	$lat = $location['o-module-mapping:lat'];
 		  	$api = $location['o:item']['@id'];
-		  	$marker_coords = '['.$lng.','.$lat.']';
-		    echo '<div class="item col-6 col-md-4 col-lg-3" data-item-api="' . $api . '" data-index="' . ($marker_index+1) . '"  data-marker-coords="' . $this->escapeHtml($marker_coords) . '">';
-		      echo '<span class="title">' . $marker['title'] .'</span>';
-		    echo '</div>';
-		  endforeach;    
-		echo '</div>';
-	echo '</div>';
-echo '</div>';
-echo '<div class="col col-4"></div>';
-echo '<div class="col col-8">';
-	echo '<div class="column">';
-?>
+		  	$markerCoords = '[' . $lng . ',' . $lat . ']'; ?>
+		    <div class="item col-6 col-md-4 col-lg-3" data-item-api="<?= $api ?>" data-index="<?= ( $markerIndex + 1 ) ?>"  data-marker-coords="<?= $this->escapeHtml($markerCoords) ?>">
+		      <span class="title"><?= $marker['title'] ?></span>
+		    </div>
+		  <?php } ?>
+		</div>
+	</div>
+</div>
+<div class="col col-4"></div>
+<div class="col col-8">
+	<div class="column">

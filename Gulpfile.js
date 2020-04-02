@@ -6,7 +6,6 @@ var gutil = require('gulp-util');
 var plumber = require('gulp-plumber');
 var postcss = require('postcss');
 var sass = require('gulp-sass');
-var coffee = require('gulp-coffee');
 var autoprefixer = require('gulp-autoprefixer');
 var replace = require('gulp-replace');
 var php = require('gulp-connect-php');
@@ -15,7 +14,6 @@ var assets = '.asset';
 
 var paths = {
   sass: './asset/sass/*.scss',
-  coffee: './asset/coffee/*.coffee',
 }
 
 var dest = {
@@ -43,36 +41,22 @@ gulp.task('compile-sass', function() {
   });
 });
 
-gulp.task('compile-coffee', function() {
-  gulp.src(paths.coffee)
-    .pipe(coffee({bare: true}))
-    .pipe(gulp.dest(dest.js))
-  .on('end', function() {
-    log('Coffee done');
-    if (argv.prod) log('JS minified');
-  });
-});
-
 gulp.task('watch', function() {
   gulp.watch(paths.sass, ['compile-sass']);
-  gulp.watch(paths.coffee, ['compile-coffee']);
 });
 
 gulp.task('default', [
   'compile-sass',
-  'compile-coffee',
   'watch'
 ]);
 
 gulp.task('dev', [
   'compile-sass',
-  'compile-coffee',
   'watch'
 ]);
 
 gulp.task('prod', [
   'compile-sass',
-  'compile-coffee'
 ]);
 
 function log(message) {

@@ -4,18 +4,19 @@ $highlight: #0dae0b;
 $light: #f2f0df;
 $lighter: #fffbf8;
 .exploratory-map-block {
-	pointer-events: none;
-	.exploratory-map {
+	&.loaded {
+		pointer-events: all;
+		.exploratory-map {
+			opacity: 1;
+		}
+	}
+	.map-container {
 		width: 100%;
 		height: 600px;
 		overflow: hidden;
 		position: relative;
 		transition: opacity 300ms ease;
 		border: 1px solid $highlight;
-		* {
-			outline: none;
-			opacity: 0;
-		}
 		&.marker-hover {
 			cursor: pointer;
 		}
@@ -31,15 +32,15 @@ $lighter: #fffbf8;
 			}
 		}
 		.map-panel {
-			width: calc(70% - 40px);
-			max-width: 40em;
+			width: calc(70% - 20px);
+			max-width: 20em;
 			height: calc(100% - 80px);
 			position: absolute;
-			left: 40px;
-			top: 40px;
+			left: 20px;
+			top: 20px;
 			background: $light;
 			margin-left: -100%;
-			z-index: 100;
+			z-index: 200;
 			transition: margin 300ms ease;
 			border: 1px solid $highlight;
 			overflow: hidden;
@@ -50,27 +51,65 @@ $lighter: #fffbf8;
 				border-bottom: 1px solid $highlight;
 				left: 0;
 				top: 0;
-				padding: 20px;
+				padding: 15px;
 				margin: 0;
 			}
+			.map-arrow {
+				width: 1em;
+				height: 1em;
+				position: absolute;
+				top: calc(50% - .5em);
+				color: $dark;
+				z-index: 300;
+				font-size: 1.5em;
+		    line-height: 1em;
+				&:hover {
+					cursor: pointer;
+				}
+				&[data-direction="prev"] {
+					left: 0;
+					&::after {
+						// content: '\f0d9';
+						content: '<';
+						font-weight: bold;
+					}
+				}
+				&[data-direction="next"] {
+					right: 0;
+					&::after {
+						// content: '\f0da';
+						content: '>';
+						font-weight: bold;
+					}
+				}
+				&::after {
+					width: 100%;
+					height: 100%;
+					position: absolute;
+					text-align: center;
+					font-family: 'FontAwesome';
+				}
+			}
 			h2 {
+				padding: 0 .5em;
 				margin: 0;
 				text-align: left;
 			}
-			.scroll {
+			.panel-scroll {
 				width: 100%;
 				height: 100%;
 				overflow-y: auto;
-				.inner {
-					padding: 20px;
+				.panel-inner {
+					padding: 15px;
 				}
 			}
-			.properties {
+			.panel-properties {
 				width: 100%;
 				height: 100%;
 				overflow: auto;
 				border: 0;
-				.property {
+				padding: .75em 0 0 0;
+				.panel-property {
 					list-style: none;
 					padding: .75em 0 0 0;
 			    white-space: pre-line;
@@ -116,43 +155,6 @@ $lighter: #fffbf8;
 				margin-left: 0;
 			}
 		}
-		.map-arrow {
-			width: 40px;
-			height: 40px;
-			position: absolute;
-			top: calc(50% - 20px);
-			color: $dark;
-			z-index: 200;
-			&:hover {
-				cursor: pointer;
-			}
-			&[data-direction="prev"] {
-				left: 0;
-				&::after {
-					content: '\f0d9';
-				}
-			}
-			&[data-direction="next"] {
-				right: 0;
-				&::after {
-					content: '\f0da';
-				}
-			}
-			&::after {
-				width: 100%;
-				height: 100%;
-				font-size: 40px;
-				text-align: center;
-				position: absolute;
-				font-family: 'FontAwesome';
-			}
-		}
-	}
-	&.loaded {
-		pointer-events: all;
-		.exploratory-map * {
-			opacity: 1;
-		}
 	}
 	.item-showcase {
 		width: 100%;
@@ -190,6 +192,50 @@ $lighter: #fffbf8;
 				content: attr(data-index);
 				display: inline;
 				margin-right: 10px;
+			}
+		}
+	}
+	.layer-forms {
+		width: 250px;
+		position: absolute;
+		top: 20px;
+		left: 20px;
+		z-index: 100;
+	}
+	.layer-form {
+		padding: 15px;
+		margin: 0 0 15px 0;
+		background: $light;
+		border: solid $highlight;
+		border-width: 1px;
+		h3 {
+			margin-bottom: 5px;
+		}
+		label {
+			display: table;
+			&::before {
+				content: '';
+				width: 1em;
+				height: 1em;
+				display: inline-block;
+				margin: 0 5px -2px 0;
+				background: $lighter;
+				border: 1px solid $highlight;
+			}
+			&:hover {
+				cursor: pointer;
+			}
+		}
+		input {
+			position: absolute;
+			left: -99999px;
+			&[type="radio"], &.pseudo-radio {
+				& + label::before {
+					border-radius: 50% !important;
+				}
+			}
+			&:checked + label::before {
+				background: $highlight;
 			}
 		}
 	}
