@@ -118,7 +118,7 @@ class ExploratoryMap extends AbstractBlockLayout
 
 	public function render(PhpRenderer $view, SitePageBlockRepresentation $block)
 	{
-		$prod = $_SERVER['HTTP_HOST'] == 'localhost';
+		$prod = $_SERVER['HTTP_HOST'] != 'localhost';
 		$dep_file_name = 'exploratory-map-public' . ( $prod ? '.min' : '' );
 
 		$view->headLink()->appendStylesheet($view->assetUrl($dep_file_name . '.css', 'ExploratoryMap'));
