@@ -48,20 +48,14 @@
 		<div class="item-showcase">
 		  <?php foreach ( $markers as $markerIndex => $marker ) {
 		  	$item = $marker['item'];
-		  	if( isset( $marker['location'] ) ) {
-		  		$location = $marker['location'];
-			  	$lng = $location['o-module-mapping:lng'];
-			  	$lat = $location['o-module-mapping:lat'];
-			  	$api = $location['o:item']['@id'];
-			  	$markerCoords = '[' . $lng . ',' . $lat . ']';
-		  	} else if( isset( $marker['coords'] ) ) {
+		  	if( isset( $marker['coords'] ) ) {
 		  		$coords = $marker['coords'];
-		  		$markerCoords = '[' . $coords . ']';
-		  	} ?>
-		    <div class="item col-6 col-md-4 col-lg-3" data-item-api="<?= $api ?>" data-index="<?= ( $markerIndex + 1 ) ?>"  data-marker-coords="<?= $this->escapeHtml( $markerCoords ) ?>">
-		      <span class="title"><?= $marker['title'] ?></span>
-		    </div>
-		  <?php } ?>
+		  		$markerCoords = '[' . $coords . ']'; ?>
+			    <div class="item col-6 col-md-4 col-lg-3" data-item-api="<?= $api ?>" data-index="<?= ( $markerIndex + 1 ) ?>"  data-marker-coords="<?= $this->escapeHtml( $markerCoords ) ?>">
+			      <span class="title"><?= $marker['title'] ?></span>
+			    </div>
+		  <?php }
+			} ?>
 		</div>
 	</div>
 </div>
