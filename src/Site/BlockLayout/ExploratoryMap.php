@@ -151,17 +151,8 @@ class ExploratoryMap extends AbstractBlockLayout
 			if( $item->value( 'dcterms:spatial' ) &&
 					$item->value( 'dcterms:spatial' )->value() ) {
 				$marker['coords'] = $item->value( 'dcterms:spatial' )->value();
-			} else {
-				$locations = $view->api()->search(
-					'mapping_markers',
-					['item_id' => $item->id()]
-				)->getContent();
-				$locationsArray = json_decode( json_encode( $locations ), true );
-				if( sizeof( $locationsArray ) ) {
-					$location = $locationsArray[0];
-					$marker['location'] = $location;
-				}
 			}
+			
 			$media = $attachment->media() ?: $item->primaryMedia();
 			if( $media ) {
 				$marker['thumbnail'] =  $view->thumbnail( $media, $view->thumbnailType );
