@@ -160,12 +160,12 @@ class ExploratoryMap {
 		let mapBounds = new mapboxgl.LngLatBounds();
 		markersJSON.forEach(function(markerObj, index) {
 			let coords = [];
-			if(markerObj.hasOwnProperty("location")) {
+			if(markerObj["location"]) {
 				const location = markerObj["location"],
 							lat = location["o-module-mapping:lat"],
 							lng = location["o-module-mapping:lng"];
 				coords = [lng, lat];
-			} else if(markerObj.hasOwnProperty("coords")) {
+			} else if(markerObj["coords"]) {
 				coords = markerObj["coords"].split(",");
 			} else {
 				return;

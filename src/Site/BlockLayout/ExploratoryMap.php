@@ -118,9 +118,8 @@ class ExploratoryMap extends AbstractBlockLayout
 
 	public function render(PhpRenderer $view, SitePageBlockRepresentation $block)
 	{
-		$prod = $_SERVER['HTTP_HOST'] != 'localhost';
-		$dep_file_name = 'exploratory-map-public' . ( $prod ? '.min' : '' );
-
+		$dev = isset($_SERVER,$_SERVER['REMOTE_ADDR']) && $_SERVER['REMOTE_ADDR'] == '::1';
+		$dep_file_name = 'exploratory-map-public' . ( $dev ? '' : '.min' );
 		$view->headLink()->appendStylesheet($view->assetUrl($dep_file_name . '.css', 'ExploratoryMap'));
 		$view->headScript()->appendFile($view->assetUrl('jquery-3.3.1.min.js', 'ExploratoryMap'), 'text/javascript');
 		$view->headScript()->appendFile($view->assetUrl('mapbox-gl.js', 'ExploratoryMap'), 'text/javascript');
