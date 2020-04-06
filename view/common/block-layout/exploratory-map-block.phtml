@@ -46,15 +46,19 @@
 
 		</div>
 		<div class="item-showcase">
-			<!-- <div class="item hidden" data-index="0"></div> -->
 		  <?php foreach ( $markers as $markerIndex => $marker ) {
-		  	$location = $marker['location'];
 		  	$item = $marker['item'];
-		  	$lng = $location['o-module-mapping:lng'];
-		  	$lat = $location['o-module-mapping:lat'];
-		  	$api = $location['o:item']['@id'];
-		  	$markerCoords = '[' . $lng . ',' . $lat . ']'; ?>
-		    <div class="item col-6 col-md-4 col-lg-3" data-item-api="<?= $api ?>" data-index="<?= ( $markerIndex + 1 ) ?>"  data-marker-coords="<?= $this->escapeHtml($markerCoords) ?>">
+		  	if( isset( $marker['location'] ) ) {
+		  		$location = $marker['location'];
+			  	$lng = $location['o-module-mapping:lng'];
+			  	$lat = $location['o-module-mapping:lat'];
+			  	$api = $location['o:item']['@id'];
+			  	$markerCoords = '[' . $lng . ',' . $lat . ']';
+		  	} else if( isset( $marker['coords'] ) ) {
+		  		$coords = $marker['coords'];
+		  		$markerCoords = '[' . $coords . ']';
+		  	} ?>
+		    <div class="item col-6 col-md-4 col-lg-3" data-item-api="<?= $api ?>" data-index="<?= ( $markerIndex + 1 ) ?>"  data-marker-coords="<?= $this->escapeHtml( $markerCoords ) ?>">
 		      <span class="title"><?= $marker['title'] ?></span>
 		    </div>
 		  <?php } ?>

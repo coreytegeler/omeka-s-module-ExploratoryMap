@@ -159,10 +159,17 @@ class ExploratoryMap {
 
 		let mapBounds = new mapboxgl.LngLatBounds();
 		markersJSON.forEach(function(markerObj, index) {
-			let location = markerObj["location"],
-					lat = location["o-module-mapping:lat"],
-					lng = location["o-module-mapping:lng"],
-					coords = [lng, lat];
+			let coords = [];
+			if(markerObj.hasOwnProperty("location")) {
+				const location = markerObj["location"],
+							lat = location["o-module-mapping:lat"],
+							lng = location["o-module-mapping:lng"];
+				coords = [lng, lat];
+			} else if(markerObj.hasOwnProperty("coords")) {
+				coords = markerObj["coords"].split(",");
+			} else {
+				return;
+			}
 			let marker = {
 				"type": "Feature",
 				"properties": {
@@ -330,11 +337,11 @@ class ExploratoryMap {
 
 	getMarkerData(marker, markerObj) {
 		const self = this,
-				api = markerObj.location['o:item']['@id'];
+					item = markerObj["item"];
 		$.ajax({
 			type: 'GET',
 			dataType: 'json',
-			url: api,
+			url: "/api/items/"+item,
 			success: function(data) {
 				self.populatePopup(marker, data);
 				self.populatePanel(marker, data);

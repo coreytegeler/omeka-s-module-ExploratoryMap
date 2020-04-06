@@ -136,32 +136,34 @@ class ExploratoryMap extends AbstractBlockLayout
 
 		foreach( $attachments as $index => $attachment ) {
 			$item = $attachment->item();
+			$marker = array();
+			$marker['title'] = $item->displayTitle();
+			$marker['link'] = $item->link( $item->displayTitle() );
+			if( $item ) {
+				$marker['item'] = $item->id();
+			}
+			if( $item->value( 'dcterms:type' ) ) {
+				$marker['type'] = $item->value( 'dcterms:type' )->value();
+			}
+
+			if( $item->value( 'dcterms:coverage' ) ) {
+				$marker['coords'] = $item->value( 'dcterms:coverage' )->value();
+			}
 			$locations = $view->api()->search(
 				'mapping_markers',
 				['item_id' => $item->id()]
 			)->getContent();
 			$locationsArray = json_decode( json_encode( $locations ), true );
-			if( !empty( $locationsArray ) ) {
-				foreach ( $locationsArray as $location ) {
-					$marker = array();
-					$marker['location'] = $location;
-					$media = $attachment->media() ?: $item->primaryMedia();
-					if( $media ) {
-						$marker['thumbnail'] =  $view->thumbnail( $media, $view->thumbnailType );
-						$marker['filename'] = $media->displayTitle();
-					}
-					if( $item ) {
-						$marker['item'] = $item->id();
-					}
-					if( $item->value( 'dcterms:type' ) ) {
-						$marker['type'] = $item->value( 'dcterms:type' )->value();
-					}
-					$marker['title'] = $item->displayTitle();
-					$marker['link'] = $item->link( $item->displayTitle() );
-					$markers[$markerIndex] = $marker;
-					$markerIndex++;
-				}
+			if( sizeof( $locationsArray ) ) {
+				$location = $locationsArray[0];
+				$marker['location'] = $location;
 			}
+			$media = $attachment->media() ?: $item->primaryMedia();
+			if( $media ) {
+				$marker['thumbnail'] =  $view->thumbnail( $media, $view->thumbnailType );
+				$marker['filename'] = $media->displayTitle();
+			}
+			$markers[$index] = $marker;
 		}
 	
 
