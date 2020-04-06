@@ -135,6 +135,9 @@ class ExploratoryMap extends AbstractBlockLayout
 
 		foreach( $attachments as $index => $attachment ) {
 			$item = $attachment->item();
+			if(!$item) {
+				return;
+			}
 			$marker = array();
 			$marker['title'] = $item->displayTitle();
 			$marker['link'] = $item->link( $item->displayTitle() );
@@ -145,17 +148,19 @@ class ExploratoryMap extends AbstractBlockLayout
 				$marker['type'] = $item->value( 'dcterms:type' )->value();
 			}
 
-			if( $item->value( 'dcterms:spatial' ) ) {
+			if( $item->value( 'dcterms:spatial' ) &&
+					$item->value( 'dcterms:spatial' )->value() ) {
 				$marker['coords'] = $item->value( 'dcterms:spatial' )->value();
-			}
-			$locations = $view->api()->search(
-				'mapping_markers',
-				['item_id' => $item->id()]
-			)->getContent();
-			$locationsArray = json_decode( json_encode( $locations ), true );
-			if( sizeof( $locationsArray ) ) {
-				$location = $locationsArray[0];
-				$marker['location'] = $location;
+			} else {
+				$locations = $view->api()->search(
+					'mapping_markers',
+					['item_id' => $item->id()]
+				)->getContent();
+				$locationsArray = json_decode( json_encode( $locations ), true );
+				if( sizeof( $locationsArray ) ) {
+					$location = $locationsArray[0];
+					$marker['location'] = $location;
+				}
 			}
 			$media = $attachment->media() ?: $item->primaryMedia();
 			if( $media ) {
@@ -163,8 +168,7 @@ class ExploratoryMap extends AbstractBlockLayout
 				$marker['filename'] = $media->displayTitle();
 			}
 			$markers[$index] = $marker;
-		}
-	
+		}	
 
 		return $view->partial('common/block-layout/exploratory-map-block', [
 			'block' => $block,
