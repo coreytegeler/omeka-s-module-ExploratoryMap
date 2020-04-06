@@ -146,8 +146,8 @@ class ExploratoryMap extends AbstractBlockLayout
 				$marker['type'] = $item->value( 'dcterms:type' )->value();
 			}
 
-			if( $item->value( 'dcterms:coverage' ) ) {
-				$marker['coords'] = $item->value( 'dcterms:coverage' )->value();
+			if( $item->value( 'dcterms:spatial' ) ) {
+				$marker['coords'] = $item->value( 'dcterms:spatial' )->value();
 			}
 			$locations = $view->api()->search(
 				'mapping_markers',
