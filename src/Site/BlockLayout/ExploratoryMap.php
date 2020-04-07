@@ -120,15 +120,17 @@ class ExploratoryMap extends AbstractBlockLayout
 	{
 		$dev = isset($_SERVER,$_SERVER['REMOTE_ADDR']) && $_SERVER['REMOTE_ADDR'] == '::1';
 		$dep_file_name = 'exploratory-map-public' . ( $dev ? '' : '.min' );
-		$view->headLink()->appendStylesheet($view->assetUrl($dep_file_name . '.css', 'ExploratoryMap'));
-		$view->headScript()->appendFile($view->assetUrl('jquery-3.3.1.min.js', 'ExploratoryMap'), 'text/javascript');
-		$view->headScript()->appendFile($view->assetUrl('mapbox-gl.js', 'ExploratoryMap'), 'text/javascript');
-		$view->headScript()->appendFile($view->assetUrl($dep_file_name . '.js', 'ExploratoryMap'), 'text/javascript');
+		$view->headLink()->appendStylesheet( $view->assetUrl( $dep_file_name . '.css', 'ExploratoryMap' ) );
+		$view->headScript()->appendFile( $view->assetUrl( 'jquery-3.3.1.min.js', 'ExploratoryMap' ), 'text/javascript' );
+		$view->headScript()->appendFile( $view->assetUrl( 'mapbox-gl.js', 'ExploratoryMap' ), 'text/javascript' );
+		$view->headScript()->appendFile( $view->assetUrl( $dep_file_name . '.js', 'ExploratoryMap' ), 'text/javascript' );
 
 		$attachments = $block->attachments();
 		if (!$attachments) {
 			return '';
 		}
+
+		$types = array();
 
 		$markers = array();
 		$markerIndex = 0;
@@ -146,13 +148,16 @@ class ExploratoryMap extends AbstractBlockLayout
 			}
 			if( $item->value( 'dcterms:type' ) ) {
 				$marker['type'] = $item->value( 'dcterms:type' )->value();
+				if( !in_array( $marker['type'], $types ) ) {
+					$types[] = $marker['type'];
+				}
 			}
 
 			if( $item->value( 'dcterms:spatial' ) &&
 					$item->value( 'dcterms:spatial' )->value() ) {
 				$marker['coords'] = $item->value( 'dcterms:spatial' )->value();
 			}
-			
+
 			$media = $attachment->media() ?: $item->primaryMedia();
 			if( $media ) {
 				$marker['thumbnail'] =  $view->thumbnail( $media, $view->thumbnailType );
@@ -168,6 +173,7 @@ class ExploratoryMap extends AbstractBlockLayout
 			'basemaps' => $this->handleMapValues( $block->dataValue( 'basemaps' ), 'mapbox://styles/mapbox/light-v9' ),
 			'overlays' => $this->handleMapValues( $block->dataValue( 'overlays' ), null ),
 			'markers' => $markers,
+			'types' => $types,
 		]);
 	}
 

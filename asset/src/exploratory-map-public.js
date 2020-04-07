@@ -19,6 +19,8 @@ class ExploratoryMap {
 			console.warn("No element matched the selector \""+this.options.selector+"\"");
 		}
 		this.container = this.block.querySelector(".map-container");
+		this.type = this.block.dataset.mapType;
+
 		let { basemap, accessToken } = this.block.dataset;
 
 		this.block.removeAttribute("data-basemap");
@@ -74,7 +76,7 @@ class ExploratoryMap {
 
 	changeLayer(e) {
 		const self = this,
-					input = e.target,
+					input = e.currentTarget,
 					checked = input.checked,
 					form = input.parentElement,
 					layerID = input.id,
@@ -144,6 +146,7 @@ class ExploratoryMap {
 		const self = this,
 				markersStr = this.block.dataset.markers,
 				markersJSON = markersStr ? JSON.parse(markersStr) : null;
+		console.log(this);
 		this.block.removeAttribute("data-markers");
 		if(!markersJSON) {
 			return false;
@@ -171,8 +174,8 @@ class ExploratoryMap {
 					"description": markerObj.caption ? markerObj.caption : "",
 					"title": markerObj.title ? markerObj.title : "",
 					"index": Number.isInteger(index) ? index + 1 : "",
-					"item": markerObj.item ? markerObj.item : "",
-					"type": markerObj.type ? markerObj.type : ""
+					"item": markerObj["item"] ? markerObj["item"] : "",
+					"type": markerObj["type"] ? markerObj["type"] : ""
 				},
 				"geometry": {
 					"type": 'Point',
@@ -190,33 +193,63 @@ class ExploratoryMap {
 		this.map.addSource("markers", this.sources["markers"]);
 	  this.map.addSource("hover-markers", this.sources["hover-markers"]);
 
-		let markersLayer = {
+
+	  let circleColor = this.options.color;
+	  
+	  if(this.type == "layered") {
+		  circleColor = [
+				"match",
+				["get", "type"],
+				"Bomb Locations", "#4357AD",
+				"Sexual Violence", "#E58F65",
+				"Mass Graves", "#98C1D9",
+				"Murder", "#FFD25A",
+				"Other", "#C45BAA",
+				this.options.color
+			];
+
+			
+		}
+
+		const markersLayer = {
 			"id": "markers",
 			"type": "circle",
 			"source": "markers",
 			"paint": {
-				"circle-color": this.options.color,
-				"circle-radius": 10,
+				"circle-color": circleColor,
+				"circle-radius": [
+					"interpolate",
+					["linear"],
+					["zoom"],
+					10, 5,
+					17, 20
+				],
 				"circle-stroke-color": "rgba(255,255,255,.9)",
 				"circle-stroke-width": 1.5
 			}
 		};
 
-		let hoverMarkersLayer = {
+		const hoverMarkersLayer = {
 			"id": "markers-hover",
 			"type": "symbol",
 			"source": "hover-markers",
-			"layout": {
-				"text-field": "{title}",
-				"text-size": 25,
-				"text-font": ["Open Sans Semibold", "Arial Unicode MS Bold"],
-				"text-offset": [0, 0.6],
-				"text-anchor": "top"
-			},
 			"paint": {
 				"text-color": "#000000",
 				"text-halo-color": "rgba(255,255,255,.9)",
-				"text-halo-width": 1.5
+				"text-halo-width": 1.5,
+			},
+			"layout": {
+				"text-field": "{title}",
+				"text-size": [
+					"match",
+					["get", "type"],
+					"Landmark", 20,
+					"", 20,
+					0
+				],
+				"text-font": ["Open Sans Semibold", "Arial Unicode MS Bold"],
+				"text-offset": [0, 0.6],
+				"text-anchor": "top",
 			},
 			"filter": ["==", "index", ""]
 		};
@@ -257,11 +290,6 @@ class ExploratoryMap {
 				currentItem = this.block.querySelector(".item.current"),
 				currentIndex = currentItem ? currentItem.dataset.index : null;
 
-		if(currentItem) {
-			currentItem.classList.remove("current");
-			this.closePanel();
-		}
-
 		if(markerIndex && parseInt(currentIndex) !== parseInt(markerIndex)) {
 			let item = this.block.querySelector(".item[data-index='" + markerIndex + "']"),
 					nextItem = this.findItem(markerIndex),
@@ -279,7 +307,7 @@ class ExploratoryMap {
 				this.map.flyTo({
 					center: coordArr,
 					speed: 5,
-					zoom: 8
+					zoom: 15
 				});
 				this.map.once("moveend", function(data) {
 					let centerCoords = self.map.getCenter();
@@ -291,18 +319,17 @@ class ExploratoryMap {
 						center: centerCoords
 					});
 					self.openPanel(markerIndex);
+					if(currentIndex) self.closePanel(currentIndex, true);
 				});
 			}
 		} else {
 			let nextItem = this.block.querySelector(".item.hidden");
-			if(nextItem) {
-				nextItem.classList.add("current");
-			}
+			if(nextItem) nextItem.classList.add("current");
 		}
 	};
 
 	clickArrow(e) {
-		let direction = e.target.getAttribute("data-direction"),
+		let direction = e.currentTarget.getAttribute("data-direction"),
 				items = this.block.querySelectorAll(".item"),
 				currentItem = this.block.querySelector(".item.current"),
 				nextItem;
@@ -323,7 +350,7 @@ class ExploratoryMap {
 	};
 
 	clickItem(e) {
-		let item = e.target;
+		let item = e.currentTarget;
 		if(item) {
 			let markerIndex = item.dataset.index;
 			this.flyTo(markerIndex);
@@ -482,20 +509,28 @@ class ExploratoryMap {
 	openPanel(markerIndex) {
 		const self = this,
 					panel = this.findPanel(markerIndex);
+
+		if(this.findPanel()) panel.classList.add("swap");
 		panel.classList.add("show");
 		setTimeout(function() {
+			panel.classList.remove("swap");
 			self.map.once("click", function(e) {
+				self.closePanel(markerIndex);
 				panel.classList.remove("show");
 			});
 		});
 	};
 
-	closePanel() {
-		let panel = this.findPanel();
+	closePanel(markerIndex, swap) {
+		let panel = this.findPanel(markerIndex);
 		if(panel) {
+			if(swap) panel.classList.add("swap");
 			panel.classList.remove("show");
+			setTimeout(function() {
+				panel.classList.remove("swap");
+			});
 		}
-		let item = this.findItem();
+		let item = this.findItem(markerIndex);
 		if(item) {
 			item.classList.remove("current");
 		}
@@ -503,40 +538,25 @@ class ExploratoryMap {
 
 	findPanel(markerIndex) {
 		let panel;
-		if(markerIndex) {
-			panel = this.container.querySelector(".map-panel[data-index='" + markerIndex + "']");
-		}
-		if(panel) {
-			return panel;
-		}
+		if(markerIndex) panel = this.container.querySelector(".map-panel[data-index='" + markerIndex + "']");
+		if(panel) return panel;
 		panel = this.container.querySelector(".map-panel.show");
-		if(panel) {
-			return panel;
-		} else {
-			return false;
-		}
+		if(panel) return panel;
+		return false;
 	};
 
 	findPopup(markerIndex) {
 		let popup = this.container.querySelector(".map-popup[data-index='" + markerIndex + "']");
-		if(popup && popup.length) {
-			return popup;
-		} else {
-			return false;
-		}
+		if(popup && popup.length) return popup;
+		return false;
 	};
 
 	findItem(markerIndex) {
 		let item = this.block.querySelector(".item[data-index='" + markerIndex + "']");
-		if(item) {
-			return item;
-		}
+		if(item) return item;
 		item = this.block.querySelector(".item.current");
-		if(item) {
-			return item;
-		} else {
-			return false;
-		}
+		if(item) return item;
+		return false;
 	};
 
 	findMarker(mapId, markerIndex) {

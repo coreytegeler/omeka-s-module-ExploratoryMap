@@ -32,17 +32,17 @@ $lighter: #fffbf8;
 			}
 		}
 		.map-panel {
-			width: calc(70% - 20px);
-			max-width: 20em;
-			height: calc(100% - 80px);
+			width: 25%;
+			min-width: 20em;
+			height: 100%;
 			position: absolute;
-			left: 20px;
-			top: 20px;
+			left: 0;
+			top: 0;
 			background: $light;
 			margin-left: -100%;
 			z-index: 200;
 			transition: margin 300ms ease;
-			border: 1px solid $highlight;
+			border-right: 1px solid $highlight;
 			overflow: hidden;
 			header {
 				width: 100%;
@@ -154,6 +154,10 @@ $lighter: #fffbf8;
 			&.show {
 				margin-left: 0;
 			}
+			&.swap {
+				z-index: 201;
+				transition-duration: 0ms;
+			}
 		}
 	}
 	.item-showcase {
@@ -196,18 +200,21 @@ $lighter: #fffbf8;
 		}
 	}
 	.layer-forms {
-		width: 250px;
+		width: 25%;
+		min-width: 15em;
+		height: 100%;
 		position: absolute;
-		top: 20px;
-		left: 20px;
+		top: 0;
+		left: 0;
 		z-index: 100;
+		background: $light;
+		border-right: 1px solid $highlight;
 	}
 	.layer-form {
 		padding: 15px;
-		margin: 0 0 15px 0;
-		background: $light;
-		border: solid $highlight;
-		border-width: 1px;
+		&:not(:last-child) {
+			border-bottom: 1px solid $highlight;
+		}
 		h3 {
 			margin-bottom: 5px;
 		}

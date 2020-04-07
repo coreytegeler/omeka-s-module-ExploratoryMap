@@ -2,7 +2,10 @@
 </div>
 
 <div class="col col-12">
-	<div class="exploratory-map-block row <?= $mapType ?>" data-markers="<?= $this->escapeHtml( json_encode( $markers ) ) ?>" data-basemap="<?= $this->escapeHtml( $basemaps[0]['url'] ) ?>" data-access-token="<?= $this->escapeHtml( $accessToken ) ?>">
+
+	<?php $map_id = uniqid(); ?>
+
+	<div class="exploratory-map-block row <?= $mapType ?>" data-markers="<?= $this->escapeHtml( json_encode( $markers ) ) ?>" data-basemap="<?= $this->escapeHtml( $basemaps[0]['url'] ) ?>" data-access-token="<?= $this->escapeHtml( $accessToken ) ?>" data-map-type="<?= $mapType ?>" id="<?= $map_id ?>">
 	
 		<div class="map-container">
 
@@ -15,6 +18,16 @@
 
 				<div class="layer-forms">
 
+					<form class="layer-form layer-filter" data-layer-type="markers">
+						<h3>Filters</h3>
+						<input type="checkbox" name="markers" value="" id="type-landmarks" checked />
+						<label for="type-landmarks">Landmarks</label>
+						<?php foreach ( $types as $index => $value ) { ?>
+							<input type="checkbox" name="markers" value="<?= $value ?>" id="type-<?= $index; ?>" checked />
+							<label for="type-<?= $index; ?>"><?= $value; ?></label>
+						<?php } ?>
+					</form>
+
 					<form class="layer-form layer-selector" data-layer-type="overlay">
 						<h3>Historicals maps</h3>
 						<!-- <input type="checkbox" name="overlay" value="" id="overlay-null"/> -->
@@ -22,15 +35,6 @@
 							<input class="pseudo-radio" type="checkbox" name="overlay" value="<?= $value['url'] ?>" id="overlay-<?= $index ?>"/>
 							<label for="overlay-<?= $index ?>"><?= $value['name'] ?></label>
 						<?php } ?>
-					</form>
-
-					<form class="layer-form layer-filter" data-layer-type="markers">
-						<h3>Incident type</h3>
-						<input type="checkbox" name="markers" value="Type 1" id="type-1"/>
-						<label for="type-1">Type 1</label>
-
-						<input type="checkbox" name="markers" value="Type 2" id="type-2"/>
-						<label for="type-2">Type 2</label>
 					</form>
 
 					<form class="layer-form layer-selector" data-layer-type="basemap">
