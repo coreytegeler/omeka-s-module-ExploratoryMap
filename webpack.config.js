@@ -1,28 +1,25 @@
-const webpack = require('webpack');
-const path = require('path');
-const env = require('yargs').argv.env;
-const pkg = require('./package.json');
-const autoprefixer = require('autoprefixer');
-const svgo = require('svgo-loader');
-const TerserPlugin = require('terser-webpack-plugin');
-const MiniCssExtractPlugin = require('mini-css-extract-plugin');
-const OptimizeCSSAssetsPlugin = require('optimize-css-assets-webpack-plugin');
-let mode, outputJS, outputCSS;
-let fileName = 'exploratory-map-public';
+const webpack = require('webpack'),
+			path = require('path'),
+			env = require('yargs').argv.env,
+			pkg = require('./package.json'),
+			autoprefixer = require('autoprefixer'),
+			svgo = require('svgo-loader'),
+			TerserPlugin = require('terser-webpack-plugin'),
+			MiniCssExtractPlugin = require('mini-css-extract-plugin'),
+			OptimizeCSSAssetsPlugin = require('optimize-css-assets-webpack-plugin');
+let mode, outputJS, fileName = 'exploratory-map';
 
 if (env === 'build') {
 	mode = 'production';
 	outputJS = fileName + '.min.js';
-	outputCSS = fileName + '.min.css';
 } else {
 	mode = 'development';
 	outputJS = fileName + '.js';
-	outputCSS = fileName + '.css';
 }
 
 const config = {
 	mode: mode,
-	entry: [__dirname + '/asset/src/exploratory-map-public.js'],
+	entry: [__dirname + '/asset/src/exploratory-map.js'],
 	devtool: 'source-map',
 	output: {
 		path: path.resolve(__dirname + '/asset/'),
@@ -63,7 +60,7 @@ const config = {
 	},
 	plugins: [
 		new MiniCssExtractPlugin({
-			filename: outputCSS,
+			filename: env === 'build' ? fileName + '.min.css' : fileName + '.css',
 			chunkFilename: '[id].css'
 		})
 	],

@@ -1,4 +1,4 @@
-require("./exploratory-map-public.scss");
+require("./exploratory-map.scss");
 
 class ExploratoryMap {
 	constructor(userOpts = {}) {
@@ -400,15 +400,20 @@ class ExploratoryMap {
 
 		const panelTitle = document.createElement("h2");
 		panelTitle.innerText = marker.properties.title;
+		panelHeader.appendChild(panelTitle);
 
-		const prevArrow = document.createElement("div");
-		prevArrow.classList.add("map-arrow");
-		prevArrow.dataset.direction = "prev";
-		prevArrow.addEventListener("mousedown", this.clickArrow.bind(this));
-		const nextArrow = document.createElement("div");
-		nextArrow.classList.add("map-arrow");
-		nextArrow.dataset.direction = "next";
-		nextArrow.addEventListener("mousedown", this.clickArrow.bind(this));
+		if(this.type === "story") {
+			const prevArrow = document.createElement("div");
+			prevArrow.classList.add("map-arrow");
+			prevArrow.dataset.direction = "prev";
+			prevArrow.addEventListener("mousedown", this.clickArrow.bind(this));
+			const nextArrow = document.createElement("div");
+			nextArrow.classList.add("map-arrow");
+			nextArrow.dataset.direction = "next";
+			nextArrow.addEventListener("mousedown", this.clickArrow.bind(this));
+			panelHeader.appendChild(prevArrow);
+			panelHeader.appendChild(nextArrow);
+		}
 
 		let panelInner = document.createElement("div");
 		panelInner.classList.add("panel-inner");
@@ -420,9 +425,8 @@ class ExploratoryMap {
 		let panelProperties = document.createElement("div");
 		panelProperties.classList.add("panel-properties");
 
-		panelHeader.appendChild(panelTitle);
-		panelHeader.appendChild(prevArrow);
-		panelHeader.appendChild(nextArrow);
+		
+		
 		panel.appendChild(panelHeader);
 		panelInner.appendChild(panelProperties)
 		panelScroll.appendChild(panelInner)
