@@ -122,6 +122,7 @@ class ExploratoryMap extends AbstractBlockLayout
 		$dep_file_name = 'exploratory-map' . ( $dev ? '' : '.min' );
 		$view->headLink()->appendStylesheet( $view->assetUrl( $dep_file_name . '.css', 'ExploratoryMap' ) );
 		$view->headScript()->appendFile( $view->assetUrl( 'jquery-3.3.1.min.js', 'ExploratoryMap' ), 'text/javascript' );
+		$view->headScript()->appendFile( $view->assetUrl( 'list.min.js', 'ExploratoryMap' ), 'text/javascript' );
 		$view->headScript()->appendFile( $view->assetUrl( 'mapbox-gl.js', 'ExploratoryMap' ), 'text/javascript' );
 		$view->headScript()->appendFile( $view->assetUrl( $dep_file_name . '.js', 'ExploratoryMap' ), 'text/javascript' );
 
@@ -143,14 +144,24 @@ class ExploratoryMap extends AbstractBlockLayout
 			$marker = array();
 			$marker['title'] = $item->displayTitle();
 			$marker['link'] = $item->link( $item->displayTitle() );
+
+			if( $item->value( 'dcterms:date' ) ) {
+				$marker['date'] = $item->value( 'dcterms:date' )->value();
+			} else {
+				$marker['date'] = '';
+			}
+
 			if( $item ) {
 				$marker['item'] = $item->id();
 			}
+
 			if( $item->value( 'dcterms:type' ) ) {
 				$marker['type'] = $item->value( 'dcterms:type' )->value();
 				if( !in_array( $marker['type'], $types ) ) {
 					$types[] = $marker['type'];
 				}
+			} else {
+				$marker['type'] = 'Landmarks';
 			}
 
 			if( $item->value( 'dcterms:spatial' ) &&

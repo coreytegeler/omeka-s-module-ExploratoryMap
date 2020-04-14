@@ -27,6 +27,7 @@ class ExploratoryMap {
 		this.block.removeAttribute("data-access-token");
 
 		this.forms = this.block.querySelectorAll(".layer-form");
+		this.colors = {};
 
 		mapboxgl.accessToken = accessToken;
 		this.map = new mapboxgl.Map({
@@ -36,6 +37,13 @@ class ExploratoryMap {
 		this.map.on("load", self.handleMapLoad.bind(self));
 		this.map.on("style.load", self.handleStyleLoad.bind(self));
 		this.map.setStyle(basemap);
+
+		const sortList = this.block.querySelector(".sort-list");
+		if(sortList) {
+			const sortOptions = { valueNames: ["title", "date", "type"] },
+						itemsList = new List(sortList, sortOptions);
+			itemsList.sort("date", { order: "asc" });
+		}
 	}
 
 	handleMapLoad(e) {
@@ -48,8 +56,8 @@ class ExploratoryMap {
 			item.addEventListener("mousedown", self.clickItem.bind(self));
 		});
 
-		this.block.querySelectorAll(".layer-form input").forEach(function(form, i) {
-			form.addEventListener('click', self.changeLayer.bind(self));
+		this.block.querySelectorAll(".layer-form input").forEach(function(input, i) {
+			input.addEventListener('click', self.changeLayer.bind(self));
 		});
 	}
 
@@ -146,7 +154,7 @@ class ExploratoryMap {
 		const self = this,
 				markersStr = this.block.dataset.markers,
 				markersJSON = markersStr ? JSON.parse(markersStr) : null;
-		console.log(this);
+
 		this.block.removeAttribute("data-markers");
 		if(!markersJSON) {
 			return false;
@@ -162,11 +170,13 @@ class ExploratoryMap {
 
 		let mapBounds = new mapboxgl.LngLatBounds();
 		markersJSON.forEach(function(markerObj, index) {
-			let coords = [];
-			if(markerObj["coords"]) {
-				coords = markerObj["coords"].split(",");
+			if(!markerObj["coords"]) return;
+			const coordsArr = markerObj["coords"].replace(/\s/g,'').split(",");
+			let coords;
+			if(coordsArr[1] >= -90 && coordsArr[1] <= 90) {
+				coords = new mapboxgl.LngLat(coordsArr[0], coordsArr[1]);
 			} else {
-				return;
+				coords = new mapboxgl.LngLat(coordsArr[1], coordsArr[0]);
 			}
 			let marker = {
 				"type": "Feature",
@@ -188,28 +198,52 @@ class ExploratoryMap {
 			mapBounds.extend(coords);
 		});
 
-		this.sources["hover-markers"] = this.sources["markers"];
+		this.sources["markers-labels"] = this.sources["markers"];
 
 		this.map.addSource("markers", this.sources["markers"]);
-	  this.map.addSource("hover-markers", this.sources["hover-markers"]);
+	  this.map.addSource("markers-labels", this.sources["markers-labels"]);
 
 
 	  let circleColor = this.options.color;
-	  
+
 	  if(this.type == "layered") {
 		  circleColor = [
 				"match",
 				["get", "type"],
-				"Bomb Locations", "#4357AD",
-				"Sexual Violence", "#E58F65",
-				"Mass Graves", "#98C1D9",
-				"Murder", "#FFD25A",
-				"Other", "#C45BAA",
-				this.options.color
 			];
 
+			///MAKE THIS BETTER
+			this.block.querySelectorAll(".layer-filter input").forEach(function(input, i) {
 			
+				const inputId = input.getAttribute("id"),
+							label = inputId ? self.block.querySelector("[for='"+inputId+"']") : null,
+							value = input ? input.value : null,
+							color = label ? label.style.color : null;
+				if(value && value) self.colors[value] = color;
+			});
+
+			Object.keys(this.colors).forEach((key) => {
+				const value = this.colors[key];
+				circleColor.push(key);
+				circleColor.push(value);
+			});
+			circleColor.push(this.options.color);
 		}
+
+		let circleRadius = [
+			"interpolate",
+			["linear"],
+			["zoom"],
+			10, 5,
+			17, 8
+		];
+
+		circleRadius = [
+			"match",
+			["get", "type"],
+			"Landmark", 2,
+			8
+		];
 
 		const markersLayer = {
 			"id": "markers",
@@ -217,22 +251,17 @@ class ExploratoryMap {
 			"source": "markers",
 			"paint": {
 				"circle-color": circleColor,
-				"circle-radius": [
-					"interpolate",
-					["linear"],
-					["zoom"],
-					10, 5,
-					17, 20
-				],
+				"circle-radius": circleRadius,
 				"circle-stroke-color": "rgba(255,255,255,.9)",
 				"circle-stroke-width": 1.5
 			}
 		};
 
-		const hoverMarkersLayer = {
-			"id": "markers-hover",
+		const markersLabelsLayer = {
+			"id": "markers-labels",
 			"type": "symbol",
-			"source": "hover-markers",
+			"source": "markers-labels",
+			"minzoom": 13,
 			"paint": {
 				"text-color": "#000000",
 				"text-halo-color": "rgba(255,255,255,.9)",
@@ -243,21 +272,21 @@ class ExploratoryMap {
 				"text-size": [
 					"match",
 					["get", "type"],
-					"Landmark", 20,
-					"", 20,
+					"Landmark", 15,
+					"", 15,
 					0
 				],
 				"text-font": ["Open Sans Semibold", "Arial Unicode MS Bold"],
 				"text-offset": [0, 0.6],
 				"text-anchor": "top",
-			},
-			"filter": ["==", "index", ""]
+			}
+			// "filter": ["==", "index", ""]
 		};
 	
 		this.map.addLayer(markersLayer);
-		this.map.addLayer(hoverMarkersLayer);
+		this.map.addLayer(markersLabelsLayer);
 		this.layers["markers"] = markersLayer;
-		this.layers["hover-markers"] = hoverMarkersLayer;
+		this.layers["markers-labels"] = markersLabelsLayer;
 
 		this.map.fitBounds(mapBounds, {
 			padding: {
@@ -329,6 +358,7 @@ class ExploratoryMap {
 	};
 
 	clickArrow(e) {
+		if(!this.block.classList.contains("loaded")) return
 		let direction = e.currentTarget.getAttribute("data-direction"),
 				items = this.block.querySelectorAll(".item"),
 				currentItem = this.block.querySelector(".item.current"),
@@ -351,7 +381,7 @@ class ExploratoryMap {
 
 	clickItem(e) {
 		let item = e.currentTarget;
-		if(item) {
+		if(this.block.classList.contains("loaded") && item) {
 			let markerIndex = item.dataset.index;
 			this.flyTo(markerIndex);
 		}
@@ -365,7 +395,7 @@ class ExploratoryMap {
 			dataType: 'json',
 			url: "/api/items/"+item,
 			success: function(data) {
-				self.populatePopup(marker, data);
+				// self.populatePopup(marker, data);
 				self.populatePanel(marker, data);
 			},
 			error: function(jqXHR, status, error) {
@@ -374,20 +404,20 @@ class ExploratoryMap {
 		});
 	};
 
-	populatePopup(marker, data) {
-		let popup = document.createElement("div");
-		popup.classList.add("map-popup");
-		popup.dataset.index = marker.properties.index;
+	// populatePopup(marker, data) {
+	// 	let popup = document.createElement("div");
+	// 	popup.classList.add("map-popup");
+	// 	popup.dataset.index = marker.properties.index;
 
-		let popupTitle = document.createElement("h4");
-		popupTitle.innerText = marker.properties.title;
+	// 	let popupTitle = document.createElement("h4");
+	// 	popupTitle.innerText = marker.properties.title;
 
-		popup.appendChild(popupTitle);
-		this.container.appendChild(popup);
+	// 	popup.appendChild(popupTitle);
+	// 	this.container.appendChild(popup);
 
-		let item = this.block.querySelector(".item[data-index='" + marker.properties.index + "']");
-		item.classList.add("ready");
-	};
+	// 	let item = this.block.querySelector(".item[data-index='" + marker.properties.index + "']");
+	// 	item.classList.add("ready");
+	// };
 
 	populatePanel(marker, data) {
 		const self = this;
@@ -477,32 +507,32 @@ class ExploratoryMap {
 	};
 
 	hoverMarker(e) {
-		let marker = e.features[0],
-				markerIndex = marker.properties.index;
+		// let marker = e.features[0],
+				// markerIndex = marker.properties.index;
 		this.map.getCanvas().style.cursor = "pointer";
-		this.map.setFilter("markers-hover", ["==", "index", marker.properties.index]);
-		this.openPopup(markerIndex);
+		// this.map.setFilter("markers-labels", ["==", "index", marker.properties.index]);
+		// this.openPopup(markerIndex);
 	};
 
 	unhoverMarker(e) {
 		this.map.getCanvas().style.cursor = "";
-		this.map.setFilter("markers-hover", ["==", "index", ""]);
-		this.closePopup();
+		// this.map.setFilter("markers-labels", ["==", "index", ""]);
+		// this.closePopup();
 	};
 
-	openPopup(markerIndex) {
-		let popup = this.findPopup(markerIndex);
-		if(popup) {
-			popup.classList.add("show");
-		}
-	};
+	// openPopup(markerIndex) {
+	// 	let popup = this.findPopup(markerIndex);
+	// 	if(popup) {
+	// 		popup.classList.add("show");
+	// 	}
+	// };
 
-	closePopup() {
-		let popup = this.container.querySelector(".map-popup.show")
-		if(popup) {
-			popup.classList.remove("show");
-		}
-	};
+	// closePopup() {
+	// 	let popup = this.container.querySelector(".map-popup.show")
+	// 	if(popup) {
+	// 		popup.classList.remove("show");
+	// 	}
+	// };
 
 	clickMarker(e) {
 		let marker = e.features[0],
@@ -549,11 +579,11 @@ class ExploratoryMap {
 		return false;
 	};
 
-	findPopup(markerIndex) {
-		let popup = this.container.querySelector(".map-popup[data-index='" + markerIndex + "']");
-		if(popup && popup.length) return popup;
-		return false;
-	};
+	// findPopup(markerIndex) {
+	// 	let popup = this.container.querySelector(".map-popup[data-index='" + markerIndex + "']");
+	// 	if(popup && popup.length) return popup;
+	// 	return false;
+	// };
 
 	findItem(markerIndex) {
 		let item = this.block.querySelector(".item[data-index='" + markerIndex + "']");

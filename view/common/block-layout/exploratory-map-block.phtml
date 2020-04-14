@@ -16,6 +16,14 @@
 
 			<?php if( $mapType == 'layered' ) { ?>
 
+				<?php $colors = array(
+					'#4357AD',
+					'#E58F65',
+					'#98C1D9',
+					'#FFD25A',
+					'#C45BAA'
+				); ?>
+
 				<div class="layer-forms">
 
 					<form class="layer-form layer-filter" data-layer-type="markers">
@@ -24,7 +32,9 @@
 						<label for="type-landmarks">Landmarks</label>
 						<?php foreach ( $types as $index => $value ) { ?>
 							<input type="checkbox" name="markers" value="<?= $value ?>" id="type-<?= $index; ?>" checked />
-							<label for="type-<?= $index; ?>"><?= $value; ?></label>
+							<label for="type-<?= $index; ?>" style="color: <?= $colors[$index] ?>">
+								<span><?= $value; ?></span>
+							</label>
 						<?php } ?>
 					</form>
 
@@ -49,16 +59,39 @@
 			<?php } ?>
 
 		</div>
-		<div class="item-showcase">
-		  <?php foreach ( $markers as $markerIndex => $marker ) {
-		  	$item = $marker['item'];
-		  	if( isset( $marker['coords'] ) ) {
-		  		$coords = $marker['coords'];
-		  		$markerCoords = '[' . $coords . ']'; ?>
-			    <div class="item col-6 col-md-4 col-lg-3" data-item-api="<?= $item ?>" data-index="<?= ( $markerIndex + 1 ) ?>"  data-marker-coords="<?= $this->escapeHtml( $markerCoords ) ?>">
-			      <span class="title"><?= $marker['title'] ?></span>
-			    </div>
-		  <?php }
+
+		<div class="item-showcase <?= $mapType == 'layered' ? 'sort-list' : ''; ?>">
+			<?php if( $mapType == 'layered' ) { ?>
+				<div class="row row-header">
+					<div class="col-3 col-header sort" data-sort="date"><h3>Date</h3></div>
+					<div class="col-6 col-header sort" data-sort="title"><h3>Location name</h3></div>
+					<div class="col-3 col-header sort" data-sort="type"><h3>Type</h3></div>
+				</div>
+				<ul class="item-rows list">
+					<?php foreach ( $markers as $markerIndex => $marker ) {
+						$item = $marker['item'];
+						if( isset( $marker['coords'] ) && $marker['type'] != 'Landmarks' ) {
+							$coords = $marker['coords'];
+							$markerCoords = '[' . $coords . ']'; ?>
+							<li class="item row" data-index="<?= ( $markerIndex + 1 ) ?>" data-marker-coords="<?= $this->escapeHtml( $markerCoords ) ?>">
+								<div class="col-3 date"><?= $marker['date'] ?></div>
+								<div class="col-6 title"><?= $marker['title'] ?></div>
+								<div class="col-3 type"><?= $marker['type'] ?></div>
+							</li>
+						<?php }
+					} ?>
+				</ul>
+			<?php } else {
+				foreach ( $markers as $markerIndex => $marker ) {
+					$item = $marker['item'];
+					if( isset( $marker['coords'] ) ) {
+						$coords = $marker['coords'];
+						$markerCoords = '[' . $coords . ']'; ?>
+						<div class="item col-6 col-md-4 col-lg-3" data-index="<?= ( $markerIndex + 1 ) ?>"  data-marker-coords="<?= $this->escapeHtml( $markerCoords ) ?>">
+							<span class="title"><?= $marker['title'] ?></span>
+						</div>
+				<?php }
+				}
 			} ?>
 		</div>
 	</div>
