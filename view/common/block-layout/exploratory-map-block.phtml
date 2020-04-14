@@ -28,7 +28,7 @@
 
 					<form class="layer-form layer-filter" data-layer-type="markers">
 						<h3>Filters</h3>
-						<input type="checkbox" name="markers" value="" id="type-landmarks" checked />
+						<input type="checkbox" name="markers" value="Landmarks" id="type-landmarks" checked />
 						<label for="type-landmarks">Landmarks</label>
 						<?php foreach ( $types as $index => $value ) { ?>
 							<input type="checkbox" name="markers" value="<?= $value ?>" id="type-<?= $index; ?>" checked />
@@ -70,10 +70,8 @@
 				<ul class="item-rows list">
 					<?php foreach ( $markers as $markerIndex => $marker ) {
 						$item = $marker['item'];
-						if( isset( $marker['coords'] ) && $marker['type'] != 'Landmarks' ) {
-							$coords = $marker['coords'];
-							$markerCoords = '[' . $coords . ']'; ?>
-							<li class="item row" data-index="<?= ( $markerIndex + 1 ) ?>" data-marker-coords="<?= $this->escapeHtml( $markerCoords ) ?>">
+						if( isset( $marker['lng'] ) && isset( $marker['lat'] ) ) { ?>
+							<li class="item row <?= $marker['type'] == 'Landmarks' ? 'hidden' : '' ?>" data-index="<?= ( $markerIndex + 1 ) ?>" data-lng="<?= $marker['lng'] ?>" data-lat="<?= $marker['lat'] ?>">
 								<div class="col-3 date"><?= $marker['date'] ?></div>
 								<div class="col-6 title"><?= $marker['title'] ?></div>
 								<div class="col-3 type"><?= $marker['type'] ?></div>
@@ -84,10 +82,8 @@
 			<?php } else {
 				foreach ( $markers as $markerIndex => $marker ) {
 					$item = $marker['item'];
-					if( isset( $marker['coords'] ) ) {
-						$coords = $marker['coords'];
-						$markerCoords = '[' . $coords . ']'; ?>
-						<div class="item col-6 col-md-4 col-lg-3" data-index="<?= ( $markerIndex + 1 ) ?>"  data-marker-coords="<?= $this->escapeHtml( $markerCoords ) ?>">
+					if( isset( $marker['lng'] ) && isset( $marker['lat'] ) ) { ?>
+						<div class="item col-6 col-md-4 col-lg-3" data-index="<?= ( $markerIndex + 1 ) ?>"  data-lng="<?= $marker['lng'] ?>" data-lat="<?= $marker['lat'] ?>">
 							<span class="title"><?= $marker['title'] ?></span>
 						</div>
 				<?php }

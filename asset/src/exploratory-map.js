@@ -38,12 +38,12 @@ class ExploratoryMap {
 		this.map.on("style.load", self.handleStyleLoad.bind(self));
 		this.map.setStyle(basemap);
 
-		const sortList = this.block.querySelector(".sort-list");
-		if(sortList) {
-			const sortOptions = { valueNames: ["title", "date", "type"] },
-						itemsList = new List(sortList, sortOptions);
-			itemsList.sort("date", { order: "asc" });
-		}
+		// const sortList = this.block.querySelector(".sort-list");
+		// if(sortList) {
+		// 	const sortOptions = { valueNames: ["title", "date", "type"] },
+		// 				itemsList = new List(sortList, sortOptions);
+		// 	itemsList.sort("date", { order: "asc" });
+		// }
 	}
 
 	handleMapLoad(e) {
@@ -170,14 +170,8 @@ class ExploratoryMap {
 
 		let mapBounds = new mapboxgl.LngLatBounds();
 		markersJSON.forEach(function(markerObj, index) {
-			if(!markerObj["coords"]) return;
-			const coordsArr = markerObj["coords"].replace(/\s/g,'').split(",");
-			let coords;
-			if(coordsArr[1] >= -90 && coordsArr[1] <= 90) {
-				coords = new mapboxgl.LngLat(coordsArr[0], coordsArr[1]);
-			} else {
-				coords = new mapboxgl.LngLat(coordsArr[1], coordsArr[0]);
-			}
+			if(!markerObj["lng"] || !markerObj["lat"]) return;
+			const coords = [markerObj["lng"], markerObj["lat"]];
 			let marker = {
 				"type": "Feature",
 				"properties": {
@@ -218,7 +212,7 @@ class ExploratoryMap {
 				const inputId = input.getAttribute("id"),
 							label = inputId ? self.block.querySelector("[for='"+inputId+"']") : null,
 							value = input ? input.value : null,
-							color = label ? label.style.color : null;
+							color = label ? window.getComputedStyle(label).color : null;
 				if(value && value) self.colors[value] = color;
 			});
 
@@ -241,7 +235,7 @@ class ExploratoryMap {
 		circleRadius = [
 			"match",
 			["get", "type"],
-			"Landmark", 2,
+			"Landmarks", 5,
 			8
 		];
 
@@ -272,7 +266,7 @@ class ExploratoryMap {
 				"text-size": [
 					"match",
 					["get", "type"],
-					"Landmark", 15,
+					"Landmarks", 15,
 					"", 15,
 					0
 				],
@@ -318,7 +312,6 @@ class ExploratoryMap {
 		const self = this,
 				currentItem = this.block.querySelector(".item.current"),
 				currentIndex = currentItem ? currentItem.dataset.index : null;
-
 		if(markerIndex && parseInt(currentIndex) !== parseInt(markerIndex)) {
 			let item = this.block.querySelector(".item[data-index='" + markerIndex + "']"),
 					nextItem = this.findItem(markerIndex),
@@ -327,14 +320,13 @@ class ExploratoryMap {
 					panelWidth = nextPanel.offsetWidth + panelPadding,
 					blockWidth = this.block.offsetWidth,
 					offsetX = blockWidth / 2 - (blockWidth - panelWidth) / 2,
-					coordStr = nextItem.dataset.markerCoords;
-
+					lng = nextItem.dataset.lng,
+					lat = nextItem.dataset.lat;
 			nextItem.classList.add("current");
-
-			if(coordStr && coordStr.length) {
-				let coordArr = JSON.parse(coordStr);
+			if(lng && lat) {
+				let coords = [lng, lat];
 				this.map.flyTo({
-					center: coordArr,
+					center: coords,
 					speed: 5,
 					zoom: 15
 				});

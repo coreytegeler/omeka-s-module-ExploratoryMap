@@ -166,7 +166,19 @@ class ExploratoryMap extends AbstractBlockLayout
 
 			if( $item->value( 'dcterms:spatial' ) &&
 					$item->value( 'dcterms:spatial' )->value() ) {
-				$marker['coords'] = $item->value( 'dcterms:spatial' )->value();
+
+				$coords = preg_replace( '/\s+/', '', $item->value( 'dcterms:spatial' )->value() );
+				$coordsArr = explode( ',', $coords );
+
+				if($coordsArr[1] >= -90 && $coordsArr[1] <= 90) {
+					$lng = $coordsArr[0];
+					$lat = $coordsArr[1];
+				} else {
+					$lng = $coordsArr[1];
+					$lat = $coordsArr[0];
+				}
+				$marker['lng'] = $lng;
+				$marker['lat'] = $lat;
 			}
 
 			$media = $attachment->media() ?: $item->primaryMedia();
