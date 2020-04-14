@@ -38,12 +38,12 @@ class ExploratoryMap {
 		this.map.on("style.load", self.handleStyleLoad.bind(self));
 		this.map.setStyle(basemap);
 
-		// const sortList = this.block.querySelector(".sort-list");
-		// if(sortList) {
-		// 	const sortOptions = { valueNames: ["title", "date", "type"] },
-		// 				itemsList = new List(sortList, sortOptions);
-		// 	itemsList.sort("date", { order: "asc" });
-		// }
+		const sortList = this.block.querySelector(".sort-list");
+		if(sortList) {
+			const sortOptions = { valueNames: ["title", "date", "type"] },
+						itemsList = new List(sortList, sortOptions);
+			itemsList.sort("date", { order: "asc" });
+		}
 	}
 
 	handleMapLoad(e) {
