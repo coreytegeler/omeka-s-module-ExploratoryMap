@@ -70,9 +70,15 @@
 				<ul class="item-rows list">
 					<?php foreach ( $markers as $markerIndex => $marker ) {
 						$item = $marker['item'];
+						if( $marker['date'] ) {
+							$date = date_create( $marker['date'] );
+							$date_str = date_format( $date, 'F d, Y' );
+						} else {
+							$date_str = '';
+						}
 						if( isset( $marker['lng'] ) && isset( $marker['lat'] ) ) { ?>
 							<li class="item row <?= $marker['type'] == 'Landmarks' ? 'hidden' : '' ?>" data-index="<?= ( $markerIndex + 1 ) ?>" data-lng="<?= $marker['lng'] ?>" data-lat="<?= $marker['lat'] ?>">
-								<div class="col-3 date"><?= $marker['date'] ?></div>
+								<div class="col-3 date"><?= $date_str ?></div>
 								<div class="col-6 title"><?= $marker['title'] ?></div>
 								<div class="col-3 type"><?= $marker['type'] ?></div>
 							</li>
