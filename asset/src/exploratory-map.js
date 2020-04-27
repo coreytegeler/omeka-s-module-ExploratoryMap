@@ -51,6 +51,7 @@ class ExploratoryMap {
 		this.map.on('mouseenter', "markers", this.hoverMarker.bind(this));
 		this.map.on('mouseleave', "markers", this.unhoverMarker.bind(this));
 		this.map.on("click", "markers", this.clickMarker.bind(this));
+		this.map.on("click", this.clickMap.bind(this));
 
 		this.block.querySelectorAll(".item").forEach(function(item, i) {
 			item.addEventListener("mousedown", self.clickItem.bind(self));
@@ -487,7 +488,17 @@ class ExploratoryMap {
 						}
 						panelProperty.appendChild(link);
 					} else {
-						panelProperty.innerText += valObj['@value'];
+						let value = valObj['@value'];
+						if(slug == "date") {
+							const date = new Date(value),
+										months = ['January','February','March','April','May','June','July','August','September','October', 'November', 'December'],
+										monthIndex = date.getUTCMonth(),
+										day = date.getUTCDate(),
+										year = date.getUTCFullYear(),
+										dateStr = date.toString('dddd, MMMM ,yyyy');
+							value = `${months[monthIndex]} ${day}, ${year}`;
+						}
+						panelProperty.innerText += value;
 					}
 				});
 				if(panelProperty) {
@@ -531,6 +542,11 @@ class ExploratoryMap {
 				markerIndex = marker.properties.index;
 		this.flyTo(markerIndex);
 	};
+
+	clickMap(e) {
+		const { lngLat } = e;
+		console.log("Coordinates:", lngLat.lat+", "+lngLat.lng);
+	}
 
 	openPanel(markerIndex) {
 		const self = this,
