@@ -323,9 +323,6 @@ class ExploratoryMap {
 					offsetX = blockWidth / 2 - (blockWidth - panelWidth) / 2,
 					lng = nextItem.dataset.lng,
 					lat = nextItem.dataset.lat;
-					console.log(markerIndex);
-					console.log(nextItem);
-					console.log("From item", lng, lat);
 			nextItem.classList.add("current");
 			if(!isNaN(lng) && !isNaN(lat)) {
 				let coords = [lng, lat];
