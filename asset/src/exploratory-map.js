@@ -314,8 +314,7 @@ class ExploratoryMap {
 				currentItem = this.block.querySelector(".item.current"),
 				currentIndex = currentItem ? currentItem.dataset.index : null;
 		if(markerIndex && parseInt(currentIndex) !== parseInt(markerIndex)) {
-			let item = this.block.querySelector(".item[data-index='" + markerIndex + "']"),
-					nextItem = this.findItem(markerIndex),
+			let nextItem = this.findItem(markerIndex),
 					nextPanel = this.findPanel(markerIndex),
 					panelPadding = 15,
 					panelWidth = nextPanel.offsetWidth + panelPadding,
@@ -323,6 +322,9 @@ class ExploratoryMap {
 					offsetX = blockWidth / 2 - (blockWidth - panelWidth) / 2,
 					lng = nextItem.dataset.lng,
 					lat = nextItem.dataset.lat;
+					console.log(markerIndex);
+					console.log(nextItem);
+					console.log("From item", lng, lat);
 			nextItem.classList.add("current");
 			if(lng && lat) {
 				let coords = [lng, lat];

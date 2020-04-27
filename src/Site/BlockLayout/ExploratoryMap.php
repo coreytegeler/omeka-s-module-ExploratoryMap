@@ -135,7 +135,8 @@ class ExploratoryMap extends AbstractBlockLayout
 
 		$markers = array();
 		$markerIndex = 0;
-
+		
+		
 		foreach( $attachments as $index => $attachment ) {
 			$item = $attachment->item();
 			if(!$item) {
