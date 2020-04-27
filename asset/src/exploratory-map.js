@@ -171,26 +171,27 @@ class ExploratoryMap {
 
 		let mapBounds = new mapboxgl.LngLatBounds();
 		markersJSON.forEach(function(markerObj, index) {
-			if(!markerObj["lng"] || !markerObj["lat"]) return;
-			const coords = [markerObj["lng"], markerObj["lat"]];
+			const { lng, lat, caption, title, item, type } = markerObj
 			let marker = {
 				"type": "Feature",
 				"properties": {
-					"description": markerObj.caption ? markerObj.caption : "",
-					"title": markerObj.title ? markerObj.title : "",
+					"description": caption ? caption : "",
+					"title": title ? title : "",
 					"index": Number.isInteger(index) ? index + 1 : "",
-					"item": markerObj["item"] ? markerObj["item"] : "",
-					"type": markerObj["type"] ? markerObj["type"] : ""
-				},
-				"geometry": {
-					"type": 'Point',
-					"coordinates": coords
+					"item": item ? item : "",
+					"type": type ? type : ""
 				}
 			};
-			self.sources["markers"].data.features.push(marker);
+			if(!isNaN(lng) && !isNaN(lat)) {
+				marker.geometry = {
+					"type": 'Point',
+					"coordinates": [lng, lat]
+				};
+				self.sources["markers"].data.features.push(marker);
+				mapBounds.extend([lng, lat]);
+			}
 			self.markers.push(marker);
-			self.getMarkerData(marker, markerObj);
-			mapBounds.extend(coords);
+			self.getMarkerData(marker, item);
 		});
 
 		this.sources["markers-labels"] = this.sources["markers"];
@@ -326,25 +327,30 @@ class ExploratoryMap {
 					console.log(nextItem);
 					console.log("From item", lng, lat);
 			nextItem.classList.add("current");
-			if(lng && lat) {
+			if(!isNaN(lng) && !isNaN(lat)) {
 				let coords = [lng, lat];
-				this.map.flyTo({
-					center: coords,
-					speed: 5,
-					zoom: 15
-				});
-				this.map.once("moveend", function(data) {
-					let centerCoords = self.map.getCenter();
-					const position = self.map.project(centerCoords);
-					position.x -= offsetX;
-
-					centerCoords = self.map.unproject(position);
-					self.map.flyTo({
-						center: centerCoords
+				if(coords) {
+					this.map.flyTo({
+						center: coords,
+						speed: 5,
+						zoom: 15
 					});
+					this.map.once("moveend", function(data) {
+						let centerCoords = self.map.getCenter();
+						const position = self.map.project(centerCoords);
+						position.x -= offsetX;
+
+						centerCoords = self.map.unproject(position);
+						self.map.flyTo({
+							center: centerCoords
+						});
+						self.openPanel(markerIndex);
+						if(currentIndex) self.closePanel(currentIndex, true);
+					});
+				} else {
 					self.openPanel(markerIndex);
 					if(currentIndex) self.closePanel(currentIndex, true);
-				});
+				}
 			}
 		} else {
 			let nextItem = this.block.querySelector(".item.hidden");
@@ -382,9 +388,8 @@ class ExploratoryMap {
 		}
 	};
 
-	getMarkerData(marker, markerObj) {
-		const self = this,
-					item = markerObj["item"];
+	getMarkerData(marker, item) {
+		const self = this;
 		$.ajax({
 			type: 'GET',
 			dataType: 'json',
