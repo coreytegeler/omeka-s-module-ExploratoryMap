@@ -48,7 +48,8 @@ class ExploratoryMap extends AbstractBlockLayout
 
 	public function prepareForm(PhpRenderer $view)
 	{
-		$view->headLink()->appendStylesheet($view->assetUrl('exploratory-map.css', 'ExploratoryMap'));
+		$ver = 2.0;
+		$view->headLink()->appendStylesheet($view->assetUrl('exploratory-map.css?version='.$ver, 'ExploratoryMap'));
 	}
 
 	public function form(PhpRenderer $view, SiteRepresentation $site, SitePageRepresentation $page = null, SitePageBlockRepresentation $block = null
@@ -118,13 +119,14 @@ class ExploratoryMap extends AbstractBlockLayout
 
 	public function render(PhpRenderer $view, SitePageBlockRepresentation $block)
 	{
+		$ver = 2.0;
 		$dev = isset($_SERVER,$_SERVER['REMOTE_ADDR']) && $_SERVER['REMOTE_ADDR'] == '::1';
 		$dep_file_name = 'exploratory-map' . ( $dev ? '' : '.min' );
-		$view->headLink()->appendStylesheet( $view->assetUrl( $dep_file_name . '.css', 'ExploratoryMap' ) );
+		$view->headLink()->appendStylesheet( $view->assetUrl( $dep_file_name . '.css?version='.$ver, 'ExploratoryMap' ) );
 		$view->headScript()->appendFile( $view->assetUrl( 'jquery-3.3.1.min.js', 'ExploratoryMap' ), 'text/javascript' );
 		$view->headScript()->appendFile( $view->assetUrl( 'list.min.js', 'ExploratoryMap' ), 'text/javascript' );
 		$view->headScript()->appendFile( $view->assetUrl( 'mapbox-gl.js', 'ExploratoryMap' ), 'text/javascript' );
-		$view->headScript()->appendFile( $view->assetUrl( $dep_file_name . '.js', 'ExploratoryMap' ), 'text/javascript' );
+		$view->headScript()->appendFile( $view->assetUrl( $dep_file_name.'.js?version='.$ver, 'ExploratoryMap' ), 'text/javascript' );
 
 		$attachments = $block->attachments();
 		if (!$attachments) {
